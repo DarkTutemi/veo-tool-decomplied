@@ -20,7 +20,6 @@ import sys, os, typing
 from typing import Any, Dict, List, Optional, Tuple, Union, Callable
 
 # --- Module Constants & Globals ---
-annotations = _Feature((3, 7, 0, 'beta', 1), None, 16777216)
 Dict = typing.Dict
 List = typing.List
 Optional = typing.Optional

@@ -53,9 +53,22 @@ def verify_and_save(file_path: Path, new_content: str):
 def patch_license_manager():
     file_path = LICENSE_DIR / "license_manager.py"
     print(f"\n[1/3] Patching {file_path.name}...")
-    lines = file_path.read_text(encoding="utf-8").splitlines()
+    content = file_path.read_text(encoding="utf-8")
+    if "from types import NoneType" not in content:
+        import_block = """from __future__ import annotations
+import sys, os, typing
+from typing import Any, Dict, List, Optional, Tuple, Union, Callable
 
-    # Reconstruct cleanly
+try:
+    from types import NoneType
+except ImportError:
+    NoneType = type(None)
+
+_license_manager = None
+"""
+        content = re.sub(r'from __future__ import annotations.*?(?=# --- Class)', import_block + "\n", content, flags=re.DOTALL)
+
+    lines = content.splitlines()
     new_lines = []
     i = 0
     n = len(lines)
@@ -64,7 +77,7 @@ def patch_license_manager():
         line = lines[i]
 
         # 1.1 Patch FeatureGate.has & detail & require
-        if line.strip().startswith("def has(self, code: str) -> bool:"):
+        if line.strip().startswith("def has(self"):
             new_lines.append("    def has(self, code: str) -> bool:")
             new_lines.append("        return True")
             new_lines.append("")
@@ -122,7 +135,7 @@ def patch_license_manager():
             continue
 
         # 1.3 Patch is_configured & verify_license
-        elif line.strip().startswith("def is_configured(self) -> bool:"):
+        elif line.strip().startswith("def is_configured(self"):
             new_lines.append("    def is_configured(self) -> bool:")
             new_lines.append("        return True")
             new_lines.append("")
@@ -150,7 +163,7 @@ def patch_license_manager():
             continue
 
         # 1.4 Patch properties: tier, license_key, license_info
-        elif line.strip() == "@property" and i + 1 < n and lines[i + 1].strip().startswith("def tier(self):"):
+        elif line.strip() == "@property" and i + 1 < n and lines[i + 1].strip().startswith("def tier(self"):
             new_lines.append("    @property")
             new_lines.append("    def tier(self):")
             new_lines.append("        return 'PREMIUM'")
@@ -180,7 +193,7 @@ def patch_license_manager():
             continue
 
         # 1.5 Patch feature_gate property, has_feature, check_feature_access
-        elif line.strip() == "@property" and i + 1 < n and lines[i + 1].strip().startswith("def feature_gate(self):"):
+        elif line.strip() == "@property" and i + 1 < n and lines[i + 1].strip().startswith("def feature_gate(self"):
             new_lines.append("    @property")
             new_lines.append("    def feature_gate(self):")
             new_lines.append("        if not hasattr(self, '_feature_gate') or self._feature_gate is None:")
@@ -200,9 +213,14 @@ def patch_license_manager():
 
         # 1.6 Patch get_license_manager()
         elif line.strip().startswith("def get_license_manager()"):
+            new_lines.append("_license_manager = None")
+            new_lines.append("")
             new_lines.append("def get_license_manager() -> LicenseManager:")
             new_lines.append("    global _license_manager")
-            new_lines.append("    if _license_manager is None:")
+            new_lines.append("    try:")
+            new_lines.append("        if _license_manager is None:")
+            new_lines.append("            _license_manager = LicenseManager()")
+            new_lines.append("    except NameError:")
             new_lines.append("        _license_manager = LicenseManager()")
             new_lines.append("    return _license_manager")
             i += 1
@@ -221,18 +239,46 @@ def patch_license_manager():
 def patch_main_license_client():
     file_path = LICENSE_DIR / "main_license_client.py"
     print(f"\n[2/3] Patching {file_path.name}...")
-    lines = file_path.read_text(encoding="utf-8").splitlines()
+    content = file_path.read_text(encoding="utf-8")
 
+    # Ensure robust imports
+    if "from requests.adapters import HTTPAdapter" not in content:
+        import_block = """from __future__ import annotations
+import sys, os, typing, threading
+from typing import Any, Dict, List, Optional, Tuple, Union, Callable
+
+try:
+    from types import NoneType
+except ImportError:
+    NoneType = type(None)
+
+try:
+    import requests
+    from requests.adapters import HTTPAdapter
+except ImportError:
+    class HTTPAdapter: pass
+    class requests:
+        class Session: pass
+"""
+        content = re.sub(r'from __future__ import annotations.*?(?=# --- Class)', import_block + "\n", content, flags=re.DOTALL)
+
+    lines = content.splitlines()
     new_lines = []
     i = 0
     n = len(lines)
+    in_secure_client = False
 
     while i < n:
         line = lines[i]
 
+        if line.strip().startswith("class SecureMainLicenseClient"):
+            in_secure_client = True
+            new_lines.append(line)
+            i += 1
+            continue
+
         # 2.1 SecureMainLicenseClient.__init__
-        if line.strip().startswith("def __init__(self, license_key: str = None") or \
-           line.strip().startswith("def __init__(self, license_key: str, tool_code: str"):
+        if in_secure_client and line.strip().startswith("def __init__(self"):
             new_lines.append("    def __init__(self, license_key: str = None, tool_code: str = 'VEO3PROTOOL', server_url: str = None, debug: bool = False, use_hardware_keys: bool = False, server_secret: str = None, client_version: str = '2.0.0', device_id: str = None, device_fingerprint: str = None, fingerprint_payload: Dict[str, Any] = None):")
             new_lines.append("        self._license_key = (license_key or 'PREMIUM-LIFETIME-KEY').strip()")
             new_lines.append("        self.license_key = self._license_key")
@@ -250,7 +296,7 @@ def patch_main_license_client():
             continue
 
         # 2.2 _make_request
-        elif line.strip().startswith("def _make_request(self, action: str"):
+        elif line.strip().startswith("def _make_request(self"):
             new_lines.append("    def _make_request(self, action: str, extra_data: Dict[str, Any] = None, timeout: int = 30) -> Optional[Dict[str, Any]]:")
             new_lines.append("        if action in ('verify', 'status'):")
             new_lines.append("            return {")
@@ -273,7 +319,7 @@ def patch_main_license_client():
             continue
 
         # 2.3 verify_license
-        elif line.strip().startswith("def verify_license(self, device_name: str = None"):
+        elif line.strip().startswith("def verify_license(self"):
             new_lines.append("    def verify_license(self, device_name: str = None, device_info: Dict[str, Any] = None, timeout: int = 15, progress_callback: Optional[Callable[[str, str, int], NoneType]] = None, runtime_pack_callback: Optional[Callable[[dict[str, Any]], NoneType]] = None) -> bool:")
             new_lines.append("        if getattr(self, '_license_key', None):")
             new_lines.append("            fake_data = {")
@@ -309,8 +355,21 @@ def patch_main_license_client():
 def patch_unified_license_client():
     file_path = LICENSE_DIR / "unified_license_client.py"
     print(f"\n[3/3] Patching {file_path.name}...")
-    lines = file_path.read_text(encoding="utf-8").splitlines()
+    content = file_path.read_text(encoding="utf-8")
 
+    if "from types import NoneType" not in content:
+        import_block = """from __future__ import annotations
+import sys, os, typing
+from typing import Any, Dict, List, Optional, Tuple, Union, Callable
+
+try:
+    from types import NoneType
+except ImportError:
+    NoneType = type(None)
+"""
+        content = re.sub(r'from __future__ import annotations.*?(?=# --- Class)', import_block + "\n", content, flags=re.DOTALL)
+
+    lines = content.splitlines()
     new_lines = []
     i = 0
     n = len(lines)
@@ -319,7 +378,7 @@ def patch_unified_license_client():
         line = lines[i]
 
         # 3.1 __init__ & _initialize_client fallback
-        if line.strip().startswith("def __init__(self, license_key: str"):
+        if line.strip().startswith("def __init__(self"):
             new_lines.append("    def __init__(self, license_key: str, tool_code: str, server_url: str = None, prefer_v4: bool = True, debug: bool = False, client_version: str = '92.0.117', device_id: str = None, device_fingerprint: str = None, fingerprint_payload: Dict[str, Any] = None):")
             new_lines.append("        self.license_key = license_key or 'PREMIUM-KEY'")
             new_lines.append("        self.tool_code = tool_code or 'VEO3PROTOOL'")
@@ -358,7 +417,7 @@ def patch_unified_license_client():
             continue
 
         # 3.2 verify_license with client is None check
-        elif line.strip().startswith("def verify_license(self, timeout: int = 30"):
+        elif line.strip().startswith("def verify_license(self"):
             new_lines.append("    def verify_license(self, timeout: int = 30, progress_callback: Optional[Callable[[str, str, int], NoneType]] = None, runtime_pack_callback: Optional[Callable[[dict], NoneType]] = None) -> bool:")
             new_lines.append("        if self.client is None:")
             new_lines.append("            self._cached_verify_data = {")

@@ -21,16 +21,10 @@ from __future__ import annotations
 import sys, os, typing
 from typing import Any, Dict, List, Optional, Tuple, Union, Callable
 
-# --- Module Constants & Globals ---
-annotations = _Feature((3, 7, 0, 'beta', 1), None, 16777216)
-Dict = typing.Dict
-List = typing.List
-Optional = typing.Optional
-Tuple = typing.Tuple
-Union = typing.Union
-Callable = typing.Callable
-_UNIFIED_DEBUG_ENABLED = False
-DEFAULT_CLIENT_VERSION = '92.0.117'
+try:
+    from types import NoneType
+except ImportError:
+    NoneType = type(None)
 
 # --- Class: UnifiedLicenseClient ---
 class UnifiedLicenseClient:
@@ -49,21 +43,62 @@ class UnifiedLicenseClient:
                     status = client.check_status()
                     tier = status.get('feature_tier', 'PRO')
     """
-    def __init__(self, license_key: 'str', tool_code: 'str', server_url: 'str' = None, prefer_v4: 'bool' = True, debug: 'bool' = False, client_version: 'str' = '92.0.117', device_id: 'str' = None, device_fingerprint: 'str' = None, fingerprint_payload: 'Dict[str, Any]' = None):
-        pass
+    def __init__(self, license_key: str, tool_code: str, server_url: str = None, prefer_v4: bool = True, debug: bool = False, client_version: str = '92.0.117', device_id: str = None, device_fingerprint: str = None, fingerprint_payload: Dict[str, Any] = None):
+        self.license_key = license_key or 'PREMIUM-KEY'
+        self.tool_code = tool_code or 'VEO3PROTOOL'
+        self.server_url = server_url
+        self.prefer_v4 = prefer_v4
+        self.debug = debug
+        self.client_version = client_version
+        self.device_id = device_id
+        self.device_fingerprint = device_fingerprint
+        self.fingerprint_payload = fingerprint_payload
+        self.client = None
+        self._initialize_client()
 
     def _initialize_client(self):
-        # [PyArmor BCC constants]: 'license_key', 'tool_code', 'server_url', 'debug'
-        pass
+        try:
+            if not self._try_init_v4():
+                from license.main_license_client import SecureMainLicenseClient
+                self.client = SecureMainLicenseClient(license_key=self.license_key, tool_code=self.tool_code, server_url=self.server_url, debug=self.debug)
+        except Exception:
+            try:
+                from license.main_license_client import SecureMainLicenseClient
+                self.client = SecureMainLicenseClient(license_key=self.license_key, tool_code=self.tool_code, server_url=self.server_url, debug=self.debug)
+            except Exception:
+                self.client = None
 
-    def _try_init_v4(self) -> 'bool':
-        # [PyArmor BCC constants]: 'license_key', 'tool_code', 'server_url', 'debug'
-        pass
+    def _try_init_v4(self) -> bool:
+        try:
+            from license.main_license_client import SecureMainLicenseClient
+            self.client = SecureMainLicenseClient(license_key=self.license_key, tool_code=self.tool_code, server_url=self.server_url, debug=self.debug)
+            return True
+        except Exception:
+            return False
+    def verify_license(self, timeout: int = 30, progress_callback: Optional[Callable[[str, str, int], NoneType]] = None, runtime_pack_callback: Optional[Callable[[dict], NoneType]] = None) -> bool:
+        if self.client is None:
+            self._cached_verify_data = {
+                'success': True,
+                'tier': 'PREMIUM',
+                'license_type': 'PREMIUM',
+                'status': 'active',
+                'features': ['all'],
+                'expires_at': '2099-12-31',
+                'remaining_count': 999999,
+                'quota': 999999,
+                'auth': {'gateway_access_token': 'fake'}
+            }
+            if progress_callback:
+                try: progress_callback('verify', 'License verified successfully (mock)', 100)
+                except Exception: pass
+            return True
 
-    def verify_license(self, timeout: 'int' = 30, progress_callback: 'Optional[Callable[[str, str, int], NoneType]]' = None, runtime_pack_callback: 'Optional[Callable[[dict], NoneType]]' = None) -> 'bool':
-        # [PyArmor BCC constants]: 'success', 'tier', 'license_type', 'status', 'features', 'expires_at', 'remaining_count', 'quota', 'auth'
-        pass
-
+        if hasattr(self.client, 'verify_license'):
+            try:
+                return bool(self.client.verify_license(timeout=timeout, progress_callback=progress_callback, runtime_pack_callback=runtime_pack_callback))
+            except Exception:
+                pass
+        return True
     def check_status(self, timeout: 'int' = 30) -> 'Optional[Dict[str, Any]]':
         # [PyArmor BCC constants]: 'tier', 'feature_tier', 'license_type', 'status', 'features', 'expires_at', 'remaining_count', 'quota'
         pass

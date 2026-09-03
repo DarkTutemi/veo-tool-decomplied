@@ -20,7 +20,6 @@ from typing import Any, Dict, List, Optional, Tuple, Union, Callable
 __all__ = ['UnifiedLicenseClient', 'VeoflowAPIClient', 'get_veoflow_client', 'reset_veoflow_client', 'LicenseManager', 'FeatureGate', 'get_license_manager']
 
 # --- Module Constants & Globals ---
-annotations = _Feature((3, 7, 0, 'beta', 1), None, 16777216)
 Dict = typing.Dict
 List = typing.List
 Optional = typing.Optional

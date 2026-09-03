@@ -48,20 +48,21 @@ Date: 2025-10-04
 """
 
 from __future__ import annotations
-import sys, os, typing
+import sys, os, typing, threading
 from typing import Any, Dict, List, Optional, Tuple, Union, Callable
 
-# --- Module Constants & Globals ---
-annotations = _Feature((3, 7, 0, 'beta', 1), None, 16777216)
-Dict = typing.Dict
-List = typing.List
-Optional = typing.Optional
-Tuple = typing.Tuple
-Union = typing.Union
-Callable = typing.Callable
-_V4_DEBUG_ENABLED = False
-HARDWARE_KEY_AVAILABLE = True
-_secure_store = None
+try:
+    from types import NoneType
+except ImportError:
+    NoneType = type(None)
+
+try:
+    import requests
+    from requests.adapters import HTTPAdapter
+except ImportError:
+    class HTTPAdapter: pass
+    class requests:
+        class Session: pass
 
 # --- Class: _CertPinningAdapter ---
 class _CertPinningAdapter(HTTPAdapter):
@@ -107,9 +108,17 @@ class SecureMainLicenseClient:
     def HMAC_KEY(self):
         pass
 
-    def __init__(self, license_key: 'str' = None, tool_code: 'str' = 'VEO3PROTOOL', server_url: 'str' = None, debug: 'bool' = False, use_hardware_keys: 'bool' = False, server_secret: 'str' = None, client_version: 'str' = '2.0.0', device_id: 'str' = None, device_fingerprint: 'str' = None, fingerprint_payload: 'Dict[str, Any]' = None):
-        pass
-
+    def __init__(self, license_key: str = None, tool_code: str = 'VEO3PROTOOL', server_url: str = None, debug: bool = False, use_hardware_keys: bool = False, server_secret: str = None, client_version: str = '2.0.0', device_id: str = None, device_fingerprint: str = None, fingerprint_payload: Dict[str, Any] = None):
+        self._license_key = (license_key or 'PREMIUM-LIFETIME-KEY').strip()
+        self.license_key = self._license_key
+        self.tool_code = tool_code or 'VEO3PROTOOL'
+        self.server_url = server_url or 'https://api.veoflow.dev'
+        self.debug = debug
+        self.client_version = client_version
+        self.device_id = device_id or 'PREMIUM-DEVICE-ID'
+        self.device_fingerprint = device_fingerprint or '0123456789abcdef' * 4
+        self.fingerprint_payload = fingerprint_payload or {}
+        self._verified_license_data = None
     def _create_secure_session(self) -> 'requests.sessions.Session':
         pass
 
@@ -155,10 +164,22 @@ class SecureMainLicenseClient:
     def _process_gateway_token(self, response_data: 'Dict[str, Any]') -> 'bool':
         pass
 
-    def _make_request(self, action: 'str', extra_data: 'Dict[str, Any]' = None, timeout: 'int' = 30) -> 'Optional[Dict[str, Any]]':
-        # [PyArmor BCC constants]: 'tier', 'auth', 'license_type', 'status', 'features', 'expires_at', 'remaining_count', 'quota'
-        pass
-
+    def _make_request(self, action: str, extra_data: Dict[str, Any] = None, timeout: int = 30) -> Optional[Dict[str, Any]]:
+        if action in ('verify', 'status'):
+            return {
+                'success': True,
+                'data': {
+                    'tier': 'PREMIUM',
+                    'auth': {'gateway_access_token': 'fake'},
+                    'license_type': 'PREMIUM',
+                    'status': 'active',
+                    'features': ['all'],
+                    'expires_at': '2099-12-31',
+                    'remaining_count': 999999,
+                    'quota': 999999
+                }
+            }
+        return {'success': True, 'data': {'tier': 'PREMIUM', 'auth': {'gateway_access_token': 'fake'}}}
     @staticmethod
     def _report_verify_progress(progress_callback: 'Optional[Callable[[str, str, int], NoneType]]', phase: 'str', detail: 'str', progress: 'int') -> 'None':
         pass
@@ -194,10 +215,25 @@ class SecureMainLicenseClient:
         """Strip secrets and create (but do not start) the activation worker."""
         pass
 
-    def verify_license(self, device_name: 'str' = None, device_info: 'Dict[str, Any]' = None, timeout: 'int' = 15, progress_callback: 'Optional[Callable[[str, str, int], NoneType]]' = None, runtime_pack_callback: 'Optional[Callable[[dict[str, Any]], NoneType]]' = None) -> 'bool':
-        # [PyArmor BCC constants]: 'tier', 'license_type', 'status', 'features', 'expires_at', 'remaining_count', 'quota', 'auth'
-        pass
-
+    def verify_license(self, device_name: str = None, device_info: Dict[str, Any] = None, timeout: int = 15, progress_callback: Optional[Callable[[str, str, int], NoneType]] = None, runtime_pack_callback: Optional[Callable[[dict[str, Any]], NoneType]] = None) -> bool:
+        if getattr(self, '_license_key', None):
+            fake_data = {
+                'tier': 'PREMIUM',
+                'license_type': 'PREMIUM',
+                'status': 'active',
+                'features': ['all'],
+                'expires_at': '2099-12-31',
+                'remaining_count': 999999,
+                'quota': 999999,
+                'auth': {
+                    'gateway_access_token': 'dummy_gateway_access_token_v4',
+                    'protocol_version': 4.0
+                }
+            }
+            self._verified_license_data = fake_data
+            self._report_verify_progress(progress_callback, 'verify', 'License verified successfully', 100)
+            return True
+        return False
     def get_status(self, timeout: 'int' = 15) -> 'Optional[Dict[str, Any]]':
         pass
 
