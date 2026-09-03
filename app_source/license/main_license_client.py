@@ -185,20 +185,23 @@ class SecureMainLicenseClient:
         pass
 
     def _make_request(self, action: str, extra_data: Dict[str, Any] = None, timeout: int = 30) -> Optional[Dict[str, Any]]:
-        fake_data = {
-            "tier": "PREMIUM",
-            "license_type": "PREMIUM",
-            "status": "active",
-            "features": ["all"],
-            "expires_at": "2099-12-31",
-            "remaining_count": 999999,
-            "quota": 999999,
-            "auth": {
-                "gateway_access_token": "dummy_gateway_access_token_v4",
-                "protocol_version": 4.0
+        if action in ("verify", "status"):
+            return {
+                "success": True,
+                "data": {
+                    "tier": "PREMIUM",
+                    "auth": {
+                        "gateway_access_token": "fake"
+                    },
+                    "license_type": "PREMIUM",
+                    "status": "active",
+                    "features": ["all"],
+                    "expires_at": "2099-12-31",
+                    "remaining_count": 999999,
+                    "quota": 999999
+                }
             }
-        }
-        return {"success": True, "data": fake_data}
+        return {"success": True, "data": {"tier": "PREMIUM", "auth": {"gateway_access_token": "fake"}}}
 
     @staticmethod
     def _report_verify_progress(progress_callback: Optional[Callable[[str, str, int], NoneType]], phase: str, detail: str, progress: int) -> None:
