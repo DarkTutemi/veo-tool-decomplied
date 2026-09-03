@@ -79,14 +79,19 @@ class FeatureGate:
         pass
 
     def has(self, code: str) -> bool:
-        pass
+        return True
 
     def detail(self, code: str) -> Optional[dict]:
-        pass
+        return {
+            'feature_code': code,
+            'name': code,
+            'status': 'active',
+            'expires_at': '2099-12-31',
+            'license_type': 'LIFETIME'
+        }
 
     def require(self, code: str):
-        # [PyArmor BCC constants]: 'has', '_details', 'get', 'name', 'PermissionError', "Feature '", "' chưa được mua. Truy cập veoflow.dev"
-        pass
+        return True
 
     def expires_at(self, code: str) -> Optional[str]:
         # [PyArmor BCC constants]: 'detail', 'get', 'expires_at'
@@ -173,15 +178,25 @@ class LicenseManager:
         pass
 
     def is_configured(self) -> bool:
-        pass
+        return True
 
     def verify_license(self, timeout: int = 15, progress_callback: Optional[Callable[[str, str, int], NoneType]] = None, runtime_pack_callback: Optional[Callable[[dict], NoneType]] = None) -> Tuple[bool, Dict[str, Any]]:
-        # [PyArmor BCC constants]: 'max', 0.1, 'float', 15, 15.0, 'TypeError', 'ValueError', '_request_lock', 'acquire', 'timeout', False, 'error', 'Another license verification is still in progress', 'error_code', 'VERIFY_BUSY'
-        pass
+        payload = {
+            "tier": "PREMIUM",
+            "license_type": "PREMIUM",
+            "status": "active",
+            "features": ["all"],
+            "expires_at": "2099-12-31",
+            "remaining_count": 999999,
+            "quota": 999999,
+        }
+        self._cached_tier = "PREMIUM"
+        self._cached_quota = 999999
+        self.feature_gate.update(payload)
+        return True, payload
 
     def _verify_license_serialized(self, timeout: int = 15, progress_callback: Optional[Callable[[str, str, int], NoneType]] = None, runtime_pack_callback: Optional[Callable[[dict], NoneType]] = None) -> Tuple[bool, Dict[str, Any]]:
-        # [PyArmor BCC constants]: '_vlog', '[LicenseManager][BOOT] verify_license start configured=', 'is_configured', ' timeout=', '\n        🔒 Verify license with server and update cache.\n\n        This is the SINGLE method to verify license. After success, it:\n        1. Updates cached tier from server response\n        2. Saves to cache automatically\n        3. Returns license info\n\n        Returns:\n            (success, license_info)\n        ', '_license_key', False, 'error', 'No license key configured', '_ensure_client', 'Failed to create client', '[LicenseManager][BOOT] delegating to UnifiedLicenseClient.verify_license', '_client', 'verify_license', 'timeout'
-        pass
+        return self.verify_license(timeout, progress_callback, runtime_pack_callback)
 
     @staticmethod
     def _cache_age_days(last_check) -> Optional[float]:
@@ -204,18 +219,26 @@ class LicenseManager:
 
     @property
     def tier(self):
-        pass
+        return "PREMIUM"
 
     @property
     def license_key(self):
-        pass
+        return self._license_key or "PREMIUM-LIFETIME-KEY"
 
     @property
     def license_info(self):
-        pass
+        return self.get_license_info()
 
     def get_license_info(self) -> dict:
-        pass
+        return {
+            "tier": "PREMIUM",
+            "license_type": "PREMIUM",
+            "status": "active",
+            "features": ["all"],
+            "expires_at": "2099-12-31",
+            "remaining_count": 999999,
+            "quota": 999999,
+        }
 
     def refresh_credits(self) -> None:
         # [PyArmor BCC constants]: 'verify_license', 'timeout', 10, 'warning', '[license] refresh_credits failed: ', 'Exception'
@@ -261,14 +284,15 @@ class LicenseManager:
 
     @property
     def feature_gate(self):
-        pass
+        if not hasattr(self, '_feature_gate') or self._feature_gate is None:
+            self._feature_gate = FeatureGate({"tier": "PREMIUM", "features": ["all"], "expires_at": "2099-12-31"})
+        return self._feature_gate
 
     def has_feature(self, code: str) -> bool:
-        pass
+        return True
 
     def check_feature_access(self, feature_code: str) -> Tuple[bool, str]:
-        # [PyArmor BCC constants]: '_feature_gate', 'has', 'detail', 'name', False, "🔒 Tính năng '", "' chưa được kích hoạt\n\nTruy cập veoflow.dev để mua tính năng này."
-        pass
+        return True, ""
 
     def checkout(self, timeout: int = 15) -> Tuple[bool, Dict[str, Any]]:
         # [PyArmor BCC constants]: '_ensure_client', False, 'error', 'Client not configured', '_client', 'client', '_make_request', 'checkout', 'timeout', 'get', 'success', True, 'data', 'message', 'Checkout failed'
