@@ -13,11 +13,11 @@ __all__ = ['SubtitleStudioController']
 
 # --- Module Constants & Globals ---
 annotations = _Feature((3, 7, 0, 'beta', 1), None, 16777216)
-CAPTION_MODES = frozenset({'subtitle', 'bilingual', 'auto'})
+CAPTION_MODES = frozenset({'auto', 'subtitle', 'bilingual'})
 OBJECT_IDS = frozenset({'overlay', 'caption'})
-READING_SYSTEMS = frozenset({'ipa', 'native_reading', 'romanization', 'native_and_romanization', 'auto'})
-STYLE_IDS = {'caption': frozenset({'spoken', 'translation'}), 'overlay': frozenset({'reading', 'lemma'})}
-SUBTITLE_LANGUAGE_CODES = frozenset({'pt', 'tr', 'ar', 'zh', 'ur', 'th', 'de', 'vi', 'it', 'tl', 'bn', 'id', 'hi', 'en', 'fr', 'es', 'ja', 'ms', 'ko', 'ru'})
+READING_SYSTEMS = frozenset({'auto', 'ipa', 'native_reading', 'native_and_romanization', 'romanization'})
+STYLE_IDS = {'caption': frozenset({'translation', 'spoken'}), 'overlay': frozenset({'reading', 'lemma'})}
+SUBTITLE_LANGUAGE_CODES = frozenset({'it', 'th', 'ru', 'fr', 'id', 'ja', 'de', 'ar', 'es', 'tr', 'ur', 'tl', 'ko', 'zh', 'en', 'ms', 'hi', 'pt', 'vi', 'bn'})
 SUBTITLE_PRESETS = ({'preset_id': 'clean', 'label': 'Clean Outline', 'archetype': 'OUTLINE', 'category': 'readable', 'description': 'Viền sạch, cân bằng cho mọi footage.', 'recommended_for': 'Master · Clone', 'sample': ... [truncated]
 _LANGUAGE_LABELS = {'vi': 'Tiếng Việt', 'en': 'English', 'zh': '中文', 'ja': '日本語', 'ko': '한국어', 'es': 'Español', 'fr': 'Français', 'de': 'Deutsch', 'pt': 'Português', 'ru': 'Русский', 'ar': 'العربية', 'hi': 'हिन्दी', 'id... [truncated]
 _LEARNING_LANGUAGE_OPTIONS = ({'label': 'Tự động · ý tưởng / kịch bản / SRT', 'value': 'auto'}, {'label': 'Tiếng Việt', 'value': 'vi'}, {'label': 'English', 'value': 'en'}, {'label': '中文', 'value': 'zh'}, {'label': '日本語', 'value'... [truncated]
@@ -29,8 +29,8 @@ _FONT_SOURCE_LABELS = {'auto': 'Tự động', 'bundled': 'Đi kèm', 'system': 
 _FONT_ROLE_LABELS = {'display': 'Be Vietnam Pro SemiBold', 'rounded': 'Be Vietnam Pro Bold', 'editorial': 'Noto Serif SemiBold', 'data': 'IBM Plex Sans SemiBold', 'condensed': 'Barlow Condensed SemiBold', 'universal': 'N... [truncated]
 _PREVIEW_ROLE_FONT_ASSETS = ('BeVietnamPro-SemiBold.ttf', 'BeVietnamPro-Bold.ttf', 'NotoSerif-SemiBold.ttf', 'IBMPlexSans-SemiBold.ttf', 'BarlowCondensed-SemiBold.ttf', 'NotoSans-SemiBold.ttf')
 _REGISTERED_PREVIEW_FONT_PATHS = set()
-_STYLE_PATCH_KEYS = frozenset({'outline_scale', 'fill', 'offset_y', 'uppercase', 'scale', 'weight', 'underline', 'font_role', 'accent', 'offset_x', 'strike', 'tracking', 'shadow_scale', 'italic', 'font_id'})
-_CHROME_PATCH_KEYS = frozenset({'stroke_px', 'panel_fill', 'word_state', 'panel', 'motion', 'stroke', 'panel_alpha', 'motion_strength', 'glow_px'})
+_STYLE_PATCH_KEYS = frozenset({'underline', 'uppercase', 'fill', 'font_role', 'offset_y', 'italic', 'accent', 'scale', 'font_id', 'tracking', 'shadow_scale', 'strike', 'offset_x', 'outline_scale', 'weight'})
+_CHROME_PATCH_KEYS = frozenset({'motion_strength', 'motion', 'panel_alpha', 'stroke_px', 'stroke', 'glow_px', 'panel', 'word_state', 'panel_fill'})
 _LEARNING_LANGUAGE_HINTS = (('vi', ('tiếng việt', 'vietnamese')), ('en', ('tiếng anh', 'english')), ('zh', ('tiếng trung', 'tiếng hoa', 'chinese', 'mandarin')), ('ja', ('tiếng nhật', 'japanese')), ('ko', ('tiếng hàn', 'korean')... [truncated]
 _CONTEXT_HINT_KEYS = ('title', 'idea', 'script', 'script_text', 'transcript', 'transcript_text', 'srt_text', 'subtitle_text', 'description', 'prompt', 'tone')
 _CONTEXT_SEMANTIC_KEYS = ('idea', 'script', 'script_text', 'transcript', 'transcript_text', 'srt_text', 'subtitle_text', 'description', 'prompt')
@@ -65,7 +65,7 @@ Methods:
     def roleNames(self):
         pass
 
-    def rowCount(self, parent=<PySide6.QtCore.QModelIndex(-1,-1,0x0,QObject(0x0)) at 0x0000021AD009CBC0>) -> 'int':
+    def rowCount(self, parent=<PySide6.QtCore.QModelIndex(-1,-1,0x0,QObject(0x0)) at 0x000001DFC1CE90C0>) -> 'int':
         # [PyArmor BCC constants]: 'isValid', 0, 'len', '_rows'
         pass
 

@@ -23,7 +23,7 @@ COLORWAYS_PER_SYSTEM = 3
 FULL_WIDTH_NORM = 0.98
 HALF_WIDTH_NORM = 0.46
 _MAP_UNAVAILABLE_MESSAGE = 'Hành trình bản đồ chưa hỗ trợ trong Time Machine: pipeline hiện không tạo tuyến tọa độ thật. Lớp bản đồ sẽ không được lưu hoặc render.'
-_SUPPORTED_ROUTES = frozenset({'timemachine', 'transcript'})
+_SUPPORTED_ROUTES = frozenset({'transcript', 'timemachine'})
 _TIMELINE_ROUTE = 'timemachine'
 __all__ = ['SequenceGraphicsController']
 
@@ -55,7 +55,7 @@ Methods:
     def roleNames(self):
         pass
 
-    def rowCount(self, parent=<PySide6.QtCore.QModelIndex(-1,-1,0x0,QObject(0x0)) at 0x0000021AD009CBC0>) -> 'int':
+    def rowCount(self, parent=<PySide6.QtCore.QModelIndex(-1,-1,0x0,QObject(0x0)) at 0x000001DFC1CE90C0>) -> 'int':
         # [PyArmor BCC constants]: 'isValid', 0, 'len', '_rows'
         pass
 

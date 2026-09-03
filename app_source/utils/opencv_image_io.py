@@ -19,7 +19,7 @@ __all__ = ['read_image_file', 'write_image_file']
 # --- Module Constants & Globals ---
 annotations = _Feature((3, 7, 0, 'beta', 1), None, 16777216)
 Sequence = typing.Sequence
-_ENCODABLE_EXTENSIONS = frozenset({'.dib', '.exr', '.pic', '.pfm', '.tif', '.jpg', '.pnm', '.bmp', '.hdr', '.webp', '.pxm', '.pbm', '.ras', '.jpeg', '.jpe', '.tiff', '.png', '.jp2', '.ppm', '.sr', '.pgm'})
+_ENCODABLE_EXTENSIONS = frozenset({'.webp', '.ppm', '.png', '.pic', '.pbm', '.jpg', '.pxm', '.dib', '.ras', '.pfm', '.tiff', '.bmp', '.jpeg', '.pgm', '.tif', '.jpe', '.jp2', '.exr', '.sr', '.hdr', '.pnm'})
 __all__ = ['read_image_file', 'write_image_file']
 
 # --- Top-Level Functions ---

@@ -12,9 +12,9 @@ from typing import Any, Dict, List, Optional, Tuple, Union, Callable
 # --- Module Constants & Globals ---
 annotations = _Feature((3, 7, 0, 'beta', 1), None, 16777216)
 Mapping = typing.Mapping
-_TERMINAL_STATUSES = frozenset({'complete', 'completed', 'paused', 'canceled', 'cancelled', 'error', 'failed'})
+_TERMINAL_STATUSES = frozenset({'paused', 'error', 'canceled', 'completed', 'cancelled', 'failed', 'complete'})
 _HISTORY_MAX = 80
-_HISTORY_LOCK = <unlocked _thread.lock object at 0x0000021AA00B0700>
+_HISTORY_LOCK = <unlocked _thread.lock object at 0x000001DF91EA9F80>
 _HISTORY = []
 
 # --- Top-Level Functions ---

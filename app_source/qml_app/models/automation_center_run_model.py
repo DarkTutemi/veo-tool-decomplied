@@ -38,7 +38,7 @@ Properties:
         # [PyArmor BCC constants]: '_MODEL_DATA_ROLE', 'QtCore', 'QByteArray'
         pass
 
-    def rowCount(self, parent: 'QtCore.QModelIndex' = <PySide6.QtCore.QModelIndex(-1,-1,0x0,QObject(0x0)) at 0x0000021AD08ACB40>) -> 'int':
+    def rowCount(self, parent: 'QtCore.QModelIndex' = <PySide6.QtCore.QModelIndex(-1,-1,0x0,QObject(0x0)) at 0x000001DFC250D240>) -> 'int':
         # [PyArmor BCC constants]: 'isValid', 0, 'len', '_rows'
         pass
 

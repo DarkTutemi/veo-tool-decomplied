@@ -15,7 +15,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union, Callable
 # --- Module Constants & Globals ---
 annotations = _Feature((3, 7, 0, 'beta', 1), None, 16777216)
 PROJECT_ROOT = WindowsPath('H:/veo-tool/unpack-veotool/VEOFLOWPROMAX.exe_extracted/PYZ.pyz_extracted')
-_CLIPBOARD_IMAGE_EXTENSIONS = {'.jpg', '.bmp', '.gif', '.jpeg', '.webp', '.png'}
+_CLIPBOARD_IMAGE_EXTENSIONS = {'.webp', '.gif', '.png', '.jpeg', '.bmp', '.jpg'}
 
 # --- Class: NativeShellController ---
 class NativeShellController(QObject):

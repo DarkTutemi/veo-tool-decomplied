@@ -12,7 +12,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union, Callable
 
 # --- Module Constants & Globals ---
 Optional = typing.Optional
-_logger = <utils.download_debug_logger.DownloadDebugLogger object at 0x0000021AA003F2C0>
+_logger = <utils.download_debug_logger.DownloadDebugLogger object at 0x000001DF91E46810>
 
 # --- Class: DownloadDebugLogger ---
 class DownloadDebugLogger:

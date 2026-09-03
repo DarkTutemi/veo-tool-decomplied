@@ -11,14 +11,14 @@ from typing import Any, Dict, List, Optional, Tuple, Union, Callable
 
 # --- Module Constants & Globals ---
 annotations = _Feature((3, 7, 0, 'beta', 1), None, 16777216)
-_GATED_CAPABILITIES = frozenset({'master_panel', 'image_panel', 'transcript_panel', 'normal_panel', 'time_machine', 'clone_panel', 'deep_research', 'affiliate_panel', 'voice_studio', 'extend_panel'})
+_GATED_CAPABILITIES = frozenset({'master_panel', 'image_panel', 'voice_studio', 'clone_panel', 'normal_panel', 'time_machine', 'deep_research', 'transcript_panel', 'extend_panel', 'affiliate_panel'})
 
 # --- Class: HomeController ---
 class HomeController(QObject):
     """Expose legacy HomeTab content as a headless QML data/action model."""
-    _COMPLETED_STATUSES = frozenset({'done', 'complete', 'completed'})
+    _COMPLETED_STATUSES = frozenset({'done', 'completed', 'complete'})
     _FAILED_STATUSES = frozenset({'error', 'failed'})
-    _LIVE_STATUSES = frozenset({'pending', 'processing', 'queued', 'retrying', 'preparing', 'running'})
+    _LIVE_STATUSES = frozenset({'preparing', 'processing', 'retrying', 'pending', 'queued', 'running'})
     staticMetaObject = PySide6.QtCore.QMetaObject("HomeController" inherits "QObject":
 Properties:
   #1 "summary", QVariantMap [designable], no...

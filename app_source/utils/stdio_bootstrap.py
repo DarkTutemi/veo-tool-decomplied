@@ -37,7 +37,7 @@ class NullBinaryBuffer:
 class NullStream:
     """Small text-stream contract backed by the process null device."""
     _devnull_fd = None
-    _binary_buffer = <utils.stdio_bootstrap.NullBinaryBuffer object at 0x0000021AA00F4B00>
+    _binary_buffer = <utils.stdio_bootstrap.NullBinaryBuffer object at 0x000001DF91F0B1D0>
 
     def write(self, data: 'Any' = '', *args: 'Any', **kwargs: 'Any') -> 'int':
         # [PyArmor BCC constants]: 'isinstance', 'str', 'len', 0

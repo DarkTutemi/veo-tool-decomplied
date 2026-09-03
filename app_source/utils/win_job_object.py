@@ -20,7 +20,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union, Callable
 
 # --- Module Constants & Globals ---
 _job_handle = None
-kernel32 = <WinDLL 'kernel32', handle 7ffb91670000 at 0x21acfbe4ec0>
+kernel32 = <WinDLL 'kernel32', handle 7ffb91670000 at 0x1dfc08cf8f0>
 JobObjectExtendedLimitInformation = 9
 JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE = 8192
 JOB_OBJECT_LIMIT_BREAKAWAY_OK = 2048

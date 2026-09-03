@@ -29,8 +29,8 @@ from typing import Any, Dict, List, Optional, Tuple, Union, Callable
 
 # --- Module Constants & Globals ---
 annotations = _Feature((3, 7, 0, 'beta', 1), None, 16777216)
-_TERMINAL = frozenset({'done', 'complete', 'completed', 'canceled', 'cancelled', 'error', 'failed'})
-_FAILED = frozenset({'cancelled', 'error', 'failed', 'canceled'})
+_TERMINAL = frozenset({'canceled', 'error', 'completed', 'cancelled', 'failed', 'complete', 'done'})
+_FAILED = frozenset({'canceled', 'error', 'cancelled', 'failed'})
 
 # --- Class: JobPanelPageProxy ---
 class JobPanelPageProxy(QAbstractListModel):
@@ -57,7 +57,7 @@ Properties:
     def sourceModel(*args, **kwargs):
         pass
 
-    def rowCount(self, parent=<PySide6.QtCore.QModelIndex(-1,-1,0x0,QObject(0x0)) at 0x0000021ACFFCB5C0>) -> 'int':
+    def rowCount(self, parent=<PySide6.QtCore.QModelIndex(-1,-1,0x0,QObject(0x0)) at 0x000001DFC1CCA4C0>) -> 'int':
         # [PyArmor BCC constants]: 'isValid', '_source', 0, '_count'
         pass
 

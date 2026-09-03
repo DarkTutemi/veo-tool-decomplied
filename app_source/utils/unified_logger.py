@@ -32,7 +32,7 @@ class _LogStreamHook(TextIOBase):
     Hook wrapper cho stdout/stderr.
         Capture output vào UnifiedLogger buffer, đồng thời giữ nguyên output gốc.
     """
-    _abc_impl = <_abc._abc_data object at 0x0000021AA00DF380>
+    _abc_impl = <_abc._abc_data object at 0x000001DF91F14880>
 
     def __init__(self, original_stream, logger_instance, source: str = 'stdout'):
         pass
@@ -82,7 +82,7 @@ class UnifiedLogger:
         Thread-safe.
     """
     _instance = None
-    _lock = <unlocked _thread.lock object at 0x0000021AA010B180>
+    _lock = <unlocked _thread.lock object at 0x000001DF91F1E580>
     BUFFER_MAX = 10000
 
     def install(self):

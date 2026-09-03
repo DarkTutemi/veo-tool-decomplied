@@ -12,16 +12,16 @@ from typing import Any, Dict, List, Optional, Tuple, Union, Callable
 # --- Module Constants & Globals ---
 annotations = _Feature((3, 7, 0, 'beta', 1), None, 16777216)
 _JOB_PANEL_ROLE_NAMES = ('row', 'jobId', 'sequenceNumber', 'route', 'kind', 'title', 'subtitle', 'status', 'statusText', 'statusChipText', 'progress', 'thumbnailUrl', 'thumbnailPlaceholder', 'assetPreviews', 'assetSlots', 'a... [truncated]
-_QML_ROW_KEYS = frozenset({'route', 'thumb_path', 'veo_media_name', 'output_path', 'email', 'can_view', 'scene_count', 'error_message', 'account_name', 'review_status', 'polling_started_at', 'upscaled_path', 'delete_... [truncated]
-_DISPLAY_ASSET_KEYS = frozenset({'thumbnail_file_url', 'kind', 'media_id', 'thumbnail_url', 'type', 'thumbnail_path', 'mediaId', 'slotIndex', 'label', 'thumbnail_file_path', 'image_path', 'id', 'preview_path', 'google_medi... [truncated]
+_QML_ROW_KEYS = frozenset({'title', 'generation_time_seconds', 'upscale_resolution', 'message', 'downloaded_video_path', 'type', 'resolution', 'output_folder', 'media_name', 'upscaled_path', 'thumbnail_path', 'mode_k... [truncated]
+_DISPLAY_ASSET_KEYS = frozenset({'path', 'google_media_id', 'veo_media_id', 'type', 'media_id', 'slot_index', 'label', 'image_path', 'thumbnail_path', 'id', 'previewSrc', 'kind', 'thumbnail_url', 'thumbnail_file_url', 'blo... [truncated]
 _BASE_ROLE = 257
 _ROLE_BY_NAME = {'row': 257, 'jobId': 258, 'sequenceNumber': 259, 'route': 260, 'kind': 261, 'title': 262, 'subtitle': 263, 'status': 264, 'statusText': 265, 'statusChipText': 266, 'progress': 267, 'thumbnailUrl': 26... [truncated]
 _NAME_BY_ROLE = {257: 'row', 258: 'jobId', 259: 'sequenceNumber', 260: 'route', 261: 'kind', 262: 'title', 263: 'subtitle', 264: 'status', 265: 'statusText', 266: 'statusChipText', 267: 'progress', 268: 'thumbnailUrl... [truncated]
-_RUNTIME_ONLY_KEYS = frozenset({'charcore_status', 'dispatcher_summary', 'updated_at', 'message', 'completed_at', 'progress_message', 'clone_image_stage', 'meta', 'progress', 'polling_heartbeat_at', 'step_status', 'status... [truncated]
+_RUNTIME_ONLY_KEYS = frozenset({'updated_at', 'dispatcher_summary', 'message', 'polling_heartbeat_at', 'step_status', 'status_message', 'job_progress', 'meta', 'charcore_status', 'progress_message', 'clone_image_stage', '... [truncated]
 _RUNTIME_ROLE_NAMES = ('status', 'statusText', 'statusChipText', 'progress', 'subtitle', 'updatedAt')
-_INPUT_ASSET_KEYS = frozenset({'input_assets', 'input_asset_items', 'assets', 'refs', 'reference_images', 'reference_ids', 'reference_paths', 'max_image_inputs', 'multi_asset_info', 'config', 'reference_image_ids', 'refe... [truncated]
-_ASSET_ROLE_NAMES = frozenset({'assetSlots', 'assetPreviews'})
-_RESULT_ONLY_KEYS = frozenset({'thumb_path', 'output_path', 'can_view', 'output_count', 'review_status', 'upscaled_path', 'final_merged_path', 'edit_enabled', 'delete_enabled', 'job_progress', 'state', 'can_upscale', 'co... [truncated]
+_INPUT_ASSET_KEYS = frozenset({'start_images', 'reference_images', 'refs', 'input_assets', 'reference_paths', 'input_asset_items', 'feature', 'asset_paths', 'assets', 'reference_ids', 'max_image_inputs', 'reference_previ... [truncated]
+_ASSET_ROLE_NAMES = frozenset({'assetPreviews', 'assetSlots'})
+_RESULT_ONLY_KEYS = frozenset({'status', 'generation_time_seconds', 'veo_media_id', 'downloaded_video_path', 'upscaled_path', 'thumbnail_path', 'can_delete', 'merged_video_path', 'thumbnail_url', 'thumb_path', 'generatio... [truncated]
 
 # --- Class: JobPanelListModel ---
 class JobPanelListModel(QAbstractListModel):
@@ -33,7 +33,7 @@ class JobPanelListModel(QAbstractListModel):
     _RUNTIME_ROLES = [264, 265, 266, 267, 263, 288]
     _NON_ASSET_ROLES = [257, 258, 259, 260, 261, 262, 263, 264, 265, 266, 267, 268, 269, 272, 273, 274, 275, 276, 277, 278, 279, 280, 281, 282,...
     _RESULT_ROLES = [258, 259, 260, 261, 262, 263, 264, 265, 266, 267, 268, 269, 272, 273, 274, 275, 276, 277, 278, 279, 280, 281, 282, 283,...
-    _VALID_KINDS = {'R2V', 'T2V', 'IMG', 'I2V', 'EXT'}
+    _VALID_KINDS = {'R2V', 'IMG', 'T2V', 'EXT', 'I2V'}
     staticMetaObject = PySide6.QtCore.QMetaObject("JobPanelListModel" inherits "QAbstractListModel":
 Methods:
   #76 type=Signal, signature=stat...
@@ -72,7 +72,7 @@ Methods:
     def request_page_refresh(self) -> 'None':
         pass
 
-    def rowCount(self, parent: 'QtCore.QModelIndex' = <PySide6.QtCore.QModelIndex(-1,-1,0x0,QObject(0x0)) at 0x0000021AD007D480>) -> 'int':
+    def rowCount(self, parent: 'QtCore.QModelIndex' = <PySide6.QtCore.QModelIndex(-1,-1,0x0,QObject(0x0)) at 0x000001DFC1CC9880>) -> 'int':
         # [PyArmor BCC constants]: 'isValid', 0, 'len', '_rows'
         pass
 

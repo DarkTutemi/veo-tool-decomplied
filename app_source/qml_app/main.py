@@ -1739,9 +1739,9 @@ Properties:
 # --- Class: HomeController ---
 class HomeController(QObject):
     """Expose legacy HomeTab content as a headless QML data/action model."""
-    _COMPLETED_STATUSES = frozenset({'done', 'complete', 'completed'})
+    _COMPLETED_STATUSES = frozenset({'done', 'completed', 'complete'})
     _FAILED_STATUSES = frozenset({'error', 'failed'})
-    _LIVE_STATUSES = frozenset({'pending', 'processing', 'queued', 'retrying', 'preparing', 'running'})
+    _LIVE_STATUSES = frozenset({'preparing', 'processing', 'retrying', 'pending', 'queued', 'running'})
     staticMetaObject = PySide6.QtCore.QMetaObject("HomeController" inherits "QObject":
 Properties:
   #1 "summary", QVariantMap [designable], no...
@@ -6147,9 +6147,9 @@ class WorkPanelController(QObject, WorkPanelControllerExtendAiMixin):
     _CARD_ROUTES = ('clone', 'transcript')
     _clone_angle_suggestions = ()
     _clone_angle_suggestions_busy = False
-    _ROUTE_OPTION_INT_KEYS = {'clip_duration_seconds', 'duration', 'output_count'}
+    _ROUTE_OPTION_INT_KEYS = {'clip_duration_seconds', 'output_count', 'duration'}
     _CLONE_FETCH_RETRY_DELAYS = (2.0, 5.0, 10.0)
-    _AFF_IMAGE_EXTS = {'.jpg', '.bmp', '.jpeg', '.webp', '.png'}
+    _AFF_IMAGE_EXTS = {'.webp', '.png', '.jpeg', '.bmp', '.jpg'}
     staticMetaObject = PySide6.QtCore.QMetaObject("WorkPanelController" inherits "QObject":
 Properties:
   #1 "route", QString [designable], not...

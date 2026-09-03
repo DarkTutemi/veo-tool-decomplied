@@ -44,7 +44,7 @@ class TelemetryQueue:
 # --- Class: TelemetryUploader ---
 class TelemetryUploader:
     _instance = None
-    _lock = <unlocked _thread.lock object at 0x0000021AA0023C00>
+    _lock = <unlocked _thread.lock object at 0x000001DF91AA7AC0>
 
     def __init__(self):
         # [PyArmor BCC constants]: '_initialized', True, 'TelemetryQueue', 'queue', 'threading', 'Event', '_stop', '_thread', 60, '_interval_seconds', 10, '_max_retries'

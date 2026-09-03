@@ -91,7 +91,7 @@ class QueueListModel(QAbstractListModel):
     def __init__(self, parent: 'QtCore.QObject | None' = None) -> 'None':
         pass
 
-    def rowCount(self, parent: 'QtCore.QModelIndex' = <PySide6.QtCore.QModelIndex(-1,-1,0x0,QObject(0x0)) at 0x0000021AD008F800>) -> 'int':
+    def rowCount(self, parent: 'QtCore.QModelIndex' = <PySide6.QtCore.QModelIndex(-1,-1,0x0,QObject(0x0)) at 0x000001DFC1CCFF00>) -> 'int':
         # [PyArmor BCC constants]: 'isValid', 0, 'len', '_rows'
         pass
 

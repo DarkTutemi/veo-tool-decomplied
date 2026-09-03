@@ -20,7 +20,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union, Callable
 # --- Module Constants & Globals ---
 annotations = _Feature((3, 7, 0, 'beta', 1), None, 16777216)
 Optional = typing.Optional
-_PRODUCTION_ACTIONS = frozenset({'work_panel.affiliate_auto_pool_toggle', 'work_panel.affiliate_continue_submit', 'work_panel.affiliate_start', 'work_panel.affiliate_generate_script', 'work_panel.affiliate_manual_enqueue',... [truncated]
+_PRODUCTION_ACTIONS = frozenset({'work_panel.affiliate_retry_failed', 'work_panel.affiliate_auto_pool_toggle', 'work_panel.affiliate_replan', 'work_panel.affiliate_analyze_campaign', 'work_panel.affiliate_start', 'work_pan... [truncated]
 
 # --- Top-Level Functions ---
 def is_production_action(action_key: 'str') -> 'bool':

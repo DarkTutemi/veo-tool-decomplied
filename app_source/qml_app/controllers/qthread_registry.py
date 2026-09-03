@@ -24,7 +24,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union, Callable
 
 # --- Module Constants & Globals ---
 annotations = _Feature((3, 7, 0, 'beta', 1), None, 16777216)
-_LOCK = <unlocked _thread.lock object at 0x0000021AD0D742C0>
+_LOCK = <unlocked _thread.lock object at 0x000001DFC2A15200>
 _LIVE = set()
 
 # --- Top-Level Functions ---

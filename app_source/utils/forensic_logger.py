@@ -17,7 +17,7 @@ Optional = typing.Optional
 # --- Class: ForensicLogger ---
 class ForensicLogger:
     _instance = None
-    _instance_lock = <unlocked _thread.lock object at 0x0000021AA00AA640>
+    _instance_lock = <unlocked _thread.lock object at 0x000001DF91AE3E00>
 
     def __init__(self):
         # [PyArmor BCC constants]: '_initialized', True, 'threading', 'Lock', '_lock', 'Event', '_heartbeat_stop', '_heartbeat_thread', 'get_logs_dir', 'logs_dir', 'uuid', 'uuid4', 'hex', 16, 'session_id'

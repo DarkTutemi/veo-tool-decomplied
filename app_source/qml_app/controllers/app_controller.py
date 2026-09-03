@@ -13,7 +13,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union, Callable
 annotations = _Feature((3, 7, 0, 'beta', 1), None, 16777216)
 _APP_SHELL_KEY = 'app_shell'
 _LAST_ROUTE_KEY = 'last_route'
-_VALID_ROUTES = {'normal', 'settings', 'master', 'extend', 'transcript', 'voice', 'affiliate', 'clone', 'research', 'timemachine', 'history', 'batch', 'home', 'automation'}
+_VALID_ROUTES = {'automation', 'clone', 'extend', 'affiliate', 'transcript', 'timemachine', 'home', 'voice', 'master', 'normal', 'batch', 'history', 'settings', 'research'}
 _ROUTE_FEATURE = {'master': 'master_panel', 'clone': 'clone_panel', 'transcript': 'transcript_panel', 'research': 'deep_research', 'normal': 'normal_panel', 'extend': 'extend_panel', 'timemachine': 'time_machine', 'ba... [truncated]
 
 # --- Class: AppController ---

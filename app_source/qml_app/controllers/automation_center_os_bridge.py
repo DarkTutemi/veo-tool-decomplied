@@ -28,9 +28,9 @@ _EMPTY_SNAPSHOT_ROUTES = ('coordination', 'channels', 'reports', 'alerts', 'phon
 _ROUTE_READ_PERMISSIONS = {'automation': ('workspace.read',), 'coordination': ('coordination.read',), 'channels': ('browser.read', 'browser.write'), 'reports': ('reports.read',), 'alerts': ('incident.read',), 'phone_farm': ('d... [truncated]
 _LOCAL_PRESENTATION_PERMISSIONS = ('workspace.read', 'coordination.read', 'browser.read', 'browser.write', 'reports.read', 'incident.read', 'device.read', 'settings.read', 'content.read', 'studio.read')
 _COLLECTION_ROLES = {('channels', 'profiles'): ('profileId', 'label', 'processState', 'lease', 'platformSummary', 'channelSummary', 'identitySummary', 'templateVersion', 'proxySummary', 'sessionStartedAt', 'sessionDurati... [truncated]
-_ACTIVE_STATES = {'retryable', 'cancelling', 'queued', 'assigned', 'pausing', 'starting', 'paused', 'leased', 'running'}
-_SUCCEEDED_STATES = {'completed', 'succeeded'}
-_FAILED_STATES = {'cancelled', 'failed', 'reconciliation_required'}
+_ACTIVE_STATES = {'starting', 'leased', 'queued', 'running', 'assigned', 'pausing', 'paused', 'retryable', 'cancelling'}
+_SUCCEEDED_STATES = {'succeeded', 'completed'}
+_FAILED_STATES = {'reconciliation_required', 'cancelled', 'failed'}
 _MODEL_ROLES = {'browserModel': ('profileId', 'label', 'platform', 'lifecycle', 'healthCode', 'channelId', 'templateName', 'engine', 'osName', 'locale', 'screen', 'seed', 'accountCount', 'totalBytes', 'cacheBytes', ... [truncated]
 __all__ = ['AppContext', 'AutomationAppearanceProxy', 'AutomationCenterControlPlane', 'CommandStore', 'EntitySelection', 'RecordListModel', 'SnapshotStore']
 
@@ -49,7 +49,7 @@ Properties:
         # [PyArmor BCC constants]: '_roles', 'items', 'QtCore', 'QByteArray', 'encode', 'utf-8'
         pass
 
-    def rowCount(self, parent: 'QtCore.QModelIndex' = <PySide6.QtCore.QModelIndex(-1,-1,0x0,QObject(0x0)) at 0x0000021AD49B63C0>) -> 'int':
+    def rowCount(self, parent: 'QtCore.QModelIndex' = <PySide6.QtCore.QModelIndex(-1,-1,0x0,QObject(0x0)) at 0x000001DFC6556DC0>) -> 'int':
         # [PyArmor BCC constants]: 'isValid', 0, 'len', '_rows'
         pass
 

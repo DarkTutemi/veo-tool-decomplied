@@ -14,7 +14,7 @@ annotations = _Feature((3, 7, 0, 'beta', 1), None, 16777216)
 Dict = typing.Dict
 Optional = typing.Optional
 LOGGING_ENABLED = True
-_crash_logger = <utils.crash_logger.CrashLogger object at 0x0000021A9FE4BCB0>
+_crash_logger = <utils.crash_logger.CrashLogger object at 0x000001DF91A65340>
 
 # --- Class: CrashLogger ---
 class CrashLogger:

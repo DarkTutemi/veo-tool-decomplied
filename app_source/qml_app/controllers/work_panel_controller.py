@@ -13,13 +13,13 @@ from typing import Any, Dict, List, Optional, Tuple, Union, Callable
 annotations = _Feature((3, 7, 0, 'beta', 1), None, 16777216)
 MAX_AFFILIATE_VARIANTS_PER_PRODUCT = 5
 SUPPORTED_VOICE_LANGUAGES = [('none', 'No voice', 'global'), ('vi', 'Tiếng Việt', 'vn'), ('en', 'English', 'us'), ('zh', '中文', 'cn'), ('ja', '日本語', 'jp'), ('ko', '한국어', 'kr'), ('es', 'Español', 'es'), ('fr', 'Français', 'fr'), (... [truncated]
-IMAGE_RHYTHM_CONFIG_KEYS = frozenset({'image_target_count', 'image_count_mode', 'image_pacing', 'image_rhythm_template_id', 'image_rhythm_target', 'image_rhythm_version', 'image_rhythm_mode'})
+IMAGE_RHYTHM_CONFIG_KEYS = frozenset({'image_rhythm_template_id', 'image_pacing', 'image_target_count', 'image_rhythm_version', 'image_rhythm_mode', 'image_count_mode', 'image_rhythm_target'})
 DEFAULT_MULTI_ASSET_REFERENCE_LIMIT = 3
 MAX_MULTI_ASSET_CHARACTER_REFERENCE_LIMIT = 3
 MAX_MULTI_ASSET_REFERENCE_LIMIT = 7
 ROUTE_META = {'normal': {'route': 'normal', 'title': 'Normal Panel', 'titleKey': 'qml.work.normal_title', 'subtitle': 'Single-scene text/image/video prompt cards with service-backed submit.', 'subtitleKey': 'qml.w... [truncated]
-LOCAL_FILE_EXTENSIONS = {'transcript_audio': {'.ogg', '.mp3', '.wav', '.m4a'}, 'clone_video': {'.flv', '.3gpp', '.wmv', '.mp4', '.avi', '.mpg', '.webm', '.mkv', '.mpeg', '.mov'}, 'batch_reference_image': {'.jpg', '.webp', '.... [truncated]
-TRANSCRIPT_SUBTITLE_EXTENSIONS = {'.vtt', '.srt'}
+LOCAL_FILE_EXTENSIONS = {'transcript_audio': {'.ogg', '.m4a', '.wav', '.mp3'}, 'clone_video': {'.avi', '.mov', '.mp4', '.mkv', '.wmv', '.mpeg', '.webm', '.flv', '.3gpp', '.mpg'}, 'batch_reference_image': {'.jpeg', '.webp', '... [truncated]
+TRANSCRIPT_SUBTITLE_EXTENSIONS = {'.srt', '.vtt'}
 _NORMAL_ROUTE_DEFAULTS = {'allow_headless_execution': True, 'dry_run': False, 'auto_merge': False, 'feature_type': 'text', 'mode': 'text_16_9', 'clip_duration_seconds': 8, 'output_count': 1}
 _NORMAL_ROUTE_SETTINGS_KEY = 'normal_panel'
 _CLONE_ROUTE_DEFAULTS = {'mode': 'url', 'aspect_ratio': '16:9', 'quality': '720p', 'resolution': '720p', 'enable_upscale': False, 'model_key': '', 'video_model_key': '', 'market': 'global', 'target_market': 'global', 'output... [truncated]
@@ -76,7 +76,7 @@ Properties:
         # [PyArmor BCC constants]: 'enumerate', '_cards', '_card_id', '_id_to_row'
         pass
 
-    def rowCount(self, parent: 'QtCore.QModelIndex' = <PySide6.QtCore.QModelIndex(-1,-1,0x0,QObject(0x0)) at 0x0000021AD008E040>) -> 'int':
+    def rowCount(self, parent: 'QtCore.QModelIndex' = <PySide6.QtCore.QModelIndex(-1,-1,0x0,QObject(0x0)) at 0x000001DFC08DED80>) -> 'int':
         # [PyArmor BCC constants]: 'isValid', 0, 'len', '_cards'
         pass
 
@@ -127,7 +127,7 @@ class QueueListModel(QAbstractListModel):
     def __init__(self, parent: 'QtCore.QObject | None' = None) -> 'None':
         pass
 
-    def rowCount(self, parent: 'QtCore.QModelIndex' = <PySide6.QtCore.QModelIndex(-1,-1,0x0,QObject(0x0)) at 0x0000021AD008F800>) -> 'int':
+    def rowCount(self, parent: 'QtCore.QModelIndex' = <PySide6.QtCore.QModelIndex(-1,-1,0x0,QObject(0x0)) at 0x000001DFC1CCFF00>) -> 'int':
         # [PyArmor BCC constants]: 'isValid', 0, 'len', '_rows'
         pass
 
@@ -164,7 +164,7 @@ Methods:
     def roleNames(self):
         pass
 
-    def rowCount(self, parent=<PySide6.QtCore.QModelIndex(-1,-1,0x0,QObject(0x0)) at 0x0000021AD009CBC0>) -> 'int':
+    def rowCount(self, parent=<PySide6.QtCore.QModelIndex(-1,-1,0x0,QObject(0x0)) at 0x000001DFC1CE90C0>) -> 'int':
         # [PyArmor BCC constants]: 'isValid', 0, 'len', '_rows'
         pass
 
@@ -311,9 +311,9 @@ class WorkPanelController(QObject, WorkPanelControllerExtendAiMixin):
     _CARD_ROUTES = ('clone', 'transcript')
     _clone_angle_suggestions = ()
     _clone_angle_suggestions_busy = False
-    _ROUTE_OPTION_INT_KEYS = {'clip_duration_seconds', 'duration', 'output_count'}
+    _ROUTE_OPTION_INT_KEYS = {'clip_duration_seconds', 'output_count', 'duration'}
     _CLONE_FETCH_RETRY_DELAYS = (2.0, 5.0, 10.0)
-    _AFF_IMAGE_EXTS = {'.jpg', '.bmp', '.jpeg', '.webp', '.png'}
+    _AFF_IMAGE_EXTS = {'.webp', '.png', '.jpeg', '.bmp', '.jpg'}
     staticMetaObject = PySide6.QtCore.QMetaObject("WorkPanelController" inherits "QObject":
 Properties:
   #1 "route", QString [designable], not...

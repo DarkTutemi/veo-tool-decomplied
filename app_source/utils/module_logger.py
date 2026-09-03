@@ -23,7 +23,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union, Callable
 # --- Module Constants & Globals ---
 _original_stdout = None
 _print_filter = None
-log = <utils.module_logger.ModuleLogger object at 0x0000021AA00AF410>
+log = <utils.module_logger.ModuleLogger object at 0x000001DF91EB4EC0>
 
 # --- Class: PrintFilter ---
 class PrintFilter(TextIOBase):
@@ -31,7 +31,7 @@ class PrintFilter(TextIOBase):
     Custom stdout filter để chặn tất cả print() statements
         CHỈ cho phép logs từ ModuleLogger đi qua
     """
-    _abc_impl = <_abc._abc_data object at 0x0000021AA00BC1C0>
+    _abc_impl = <_abc._abc_data object at 0x000001DF91EB9200>
 
     def __init__(self, original_stdout):
         pass

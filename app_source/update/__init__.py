@@ -126,7 +126,7 @@ Methods:
 class UpdateStateManager:
     """Persist update state to survive app restarts."""
     STATE_FILE = 'C:\\Users\\vutru\\AppData\\Roaming\\VEO3_Generator_Pro\\pending_update.json'
-    _LOCK = <unlocked _thread.RLock object owner=0 count=0 at 0x0000021AA002E840>
+    _LOCK = <unlocked _thread.RLock object owner=0 count=0 at 0x000001DF91AAF540>
 
     @classmethod
     def save_state(cls, **kwargs):

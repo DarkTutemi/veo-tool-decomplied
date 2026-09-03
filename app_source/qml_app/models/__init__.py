@@ -24,7 +24,7 @@ class JobPanelListModel(QAbstractListModel):
     _RUNTIME_ROLES = [264, 265, 266, 267, 263, 288]
     _NON_ASSET_ROLES = [257, 258, 259, 260, 261, 262, 263, 264, 265, 266, 267, 268, 269, 272, 273, 274, 275, 276, 277, 278, 279, 280, 281, 282,...
     _RESULT_ROLES = [258, 259, 260, 261, 262, 263, 264, 265, 266, 267, 268, 269, 272, 273, 274, 275, 276, 277, 278, 279, 280, 281, 282, 283,...
-    _VALID_KINDS = {'R2V', 'T2V', 'IMG', 'I2V', 'EXT'}
+    _VALID_KINDS = {'R2V', 'IMG', 'T2V', 'EXT', 'I2V'}
     staticMetaObject = PySide6.QtCore.QMetaObject("JobPanelListModel" inherits "QAbstractListModel":
 Methods:
   #76 type=Signal, signature=stat...
@@ -63,7 +63,7 @@ Methods:
     def request_page_refresh(self) -> 'None':
         pass
 
-    def rowCount(self, parent: 'QtCore.QModelIndex' = <PySide6.QtCore.QModelIndex(-1,-1,0x0,QObject(0x0)) at 0x0000021AD007D480>) -> 'int':
+    def rowCount(self, parent: 'QtCore.QModelIndex' = <PySide6.QtCore.QModelIndex(-1,-1,0x0,QObject(0x0)) at 0x000001DFC1CC9880>) -> 'int':
         # [PyArmor BCC constants]: 'isValid', 0, 'len', '_rows'
         pass
 
@@ -340,7 +340,7 @@ Properties:
     def sourceModel(*args, **kwargs):
         pass
 
-    def rowCount(self, parent=<PySide6.QtCore.QModelIndex(-1,-1,0x0,QObject(0x0)) at 0x0000021ACFFCB5C0>) -> 'int':
+    def rowCount(self, parent=<PySide6.QtCore.QModelIndex(-1,-1,0x0,QObject(0x0)) at 0x000001DFC1CCA4C0>) -> 'int':
         # [PyArmor BCC constants]: 'isValid', '_source', 0, '_count'
         pass
 
@@ -486,7 +486,7 @@ Properties:
         # [PyArmor BCC constants]: 'enumerate', '_cards', '_card_id', '_id_to_row'
         pass
 
-    def rowCount(self, parent: 'QtCore.QModelIndex' = <PySide6.QtCore.QModelIndex(-1,-1,0x0,QObject(0x0)) at 0x0000021AD008E040>) -> 'int':
+    def rowCount(self, parent: 'QtCore.QModelIndex' = <PySide6.QtCore.QModelIndex(-1,-1,0x0,QObject(0x0)) at 0x000001DFC08DED80>) -> 'int':
         # [PyArmor BCC constants]: 'isValid', 0, 'len', '_cards'
         pass
 
@@ -537,7 +537,7 @@ class QueueListModel(QAbstractListModel):
     def __init__(self, parent: 'QtCore.QObject | None' = None) -> 'None':
         pass
 
-    def rowCount(self, parent: 'QtCore.QModelIndex' = <PySide6.QtCore.QModelIndex(-1,-1,0x0,QObject(0x0)) at 0x0000021AD008F800>) -> 'int':
+    def rowCount(self, parent: 'QtCore.QModelIndex' = <PySide6.QtCore.QModelIndex(-1,-1,0x0,QObject(0x0)) at 0x000001DFC1CCFF00>) -> 'int':
         # [PyArmor BCC constants]: 'isValid', 0, 'len', '_rows'
         pass
 
