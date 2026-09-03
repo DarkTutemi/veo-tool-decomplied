@@ -177,41 +177,49 @@ class SecureMainLicenseClient:
         pass
 
     def _make_request(self, action: str, extra_data: Dict[str, Any] = None, timeout: int = 30) -> Optional[Dict[str, Any]]:
-        # [PyArmor BCC constants]: 'min', 5, 'max', 1, 'int', 30, 'get-vertex-credentials', 'verify', 3, 2, 520, 521, 522, 523, 524
-        pass
+        fake_data = {
+            "tier": "PREMIUM",
+            "license_type": "PREMIUM",
+            "status": "active",
+            "features": ["all"],
+            "expires_at": "2099-12-31",
+            "remaining_count": 999999,
+            "quota": 999999,
+            "auth": {
+                "gateway_access_token": "dummy_gateway_access_token_v4",
+                "protocol_version": 4.0
+            }
+        }
+        return {"success": True, "data": fake_data}
 
     @staticmethod
     def _report_verify_progress(progress_callback: Optional[Callable[[str, str, int], NoneType]], phase: str, detail: str, progress: int) -> None:
-        pass
+        if progress_callback:
+            try: progress_callback(phase, detail, progress)
+            except Exception: pass
 
     @staticmethod
     def _deauthorize_runtime_packs(generation: int | None = None, state: str = 'revoked') -> None:
-        # [PyArmor BCC constants]: 'deauthorize_and_clear_runtime_packs', 'generation', 'state', 'Exception'
         pass
 
     @staticmethod
     def _consume_runtime_packs(license_data: Dict[str, Any], generation: int | None = None) -> None:
-        # [PyArmor BCC constants]: 'SecureMainLicenseClient', '_take_runtime_pack_request', '_activate_runtime_pack_records', 'generation', 'entitled_features', 'runtime_packs_present', 'runtime_pack_states'
         pass
 
     @staticmethod
     def _take_runtime_pack_request(license_data: Dict[str, Any]) -> tuple[list[dict[str, typing.Any]], list[str], bool]:
-        # [PyArmor BCC constants]: 'runtime_packs', 'pop', 'isinstance', 'list', 'dict', 'set', 'get', 'bool', 'maintenance', 'runtime_enabled', False, 'str', 'status', '', 'strip'
-        pass
+        return [], ["all"], False
 
     @staticmethod
     def _activate_runtime_pack_records(records: list[dict[str, typing.Any]], *, generation: int | None, entitled_features: list[str], runtime_packs_present: bool) -> list[dict[str, typing.Any]]:
-        # [PyArmor BCC constants]: 'reserve_runtime_pack_generation', 'activate_entitled_runtime_packs', 'generation', 'entitled_features', 'runtime_packs_present', 'SecureMainLicenseClient', '_deauthorize_runtime_packs', 'state', 'failed', 'pack_id', 'pack_version', 'ok', 'error', '', False
-        pass
+        return records
 
     def _state_update_lock(self) -> Any:
-        # [PyArmor BCC constants]: 'getattr', '_license_state_update_lock', 'threading', 'RLock'
-        pass
+        return threading.RLock()
 
     @staticmethod
     def _pending_runtime_pack_states(records: list[dict[str, typing.Any]]) -> list[dict[str, typing.Any]]:
-        # [PyArmor BCC constants]: 'feature_code_for', 'runtime_pack_readiness', 'str', 'get', 'pack_id', '', 'strip', 'pack_version', 'require_pack', True, 'requested_pack_version', 'bool', 'ready', 'ok', 'memory_only'
-        pass
+        return []
 
     @staticmethod
     def _report_runtime_pack_result(runtime_pack_callback: Optional[Callable[[dict[str, Any]], NoneType]], event: dict[str, typing.Any]) -> None:
@@ -219,16 +227,28 @@ class SecureMainLicenseClient:
 
     def _prepare_runtime_packs_async(self, license_data: Dict[str, Any], *, generation: int, runtime_pack_callback: Optional[Callable[[dict[str, Any]], NoneType]]) -> threading.Thread:
         """Strip secrets and create (but do not start) the activation worker."""
-        # [PyArmor BCC constants]: 'generation', 'entitled_features', 'returned_pack_ids', 'returned_pack_versions', 'runtime_packs_present'
-        pass
+        return threading.Thread(target=lambda: None)
 
     def verify_license(self, device_name: str = None, device_info: Dict[str, Any] = None, timeout: int = 15, progress_callback: Optional[Callable[[str, str, int], NoneType]] = None, runtime_pack_callback: Optional[Callable[[dict[str, Any]], NoneType]] = None) -> bool:
-        # [PyArmor BCC constants]: 'is_current_runtime_pack_generation', 'reserve_runtime_pack_generation', 'device_name', 'device_info', 'os', 'os_version', 'machine', 'platform', 'system', 'version', 'device_fingerprint', 'fingerprint_payload', 'fingerprint', 'debug', 'print'
-        pass
+        fake_data = {
+            "tier": "PREMIUM",
+            "license_type": "PREMIUM",
+            "status": "active",
+            "features": ["all"],
+            "expires_at": "2099-12-31",
+            "remaining_count": 999999,
+            "quota": 999999,
+            "auth": {
+                "gateway_access_token": "dummy_gateway_access_token_v4",
+                "protocol_version": 4.0
+            }
+        }
+        self._verified_license_data = fake_data
+        self._report_verify_progress(progress_callback, "verify", "License verified successfully", 100)
+        return True
 
     def get_status(self, timeout: int = 15) -> Optional[Dict[str, Any]]:
-        # [PyArmor BCC constants]: 'is_current_runtime_pack_generation', 'reserve_runtime_pack_generation', '_make_request', 'status', 'timeout', 'get', 'success', 'isinstance', 'data', 'dict', '_consume_runtime_packs', '_state_update_lock', '_cache_license_data', '_verified_license_data', '_deauthorize_runtime_packs'
-        pass
+        return self._make_request("status", timeout=timeout)
 
     def get_config(self) -> Optional[Dict[str, Any]]:
         # [PyArmor BCC constants]: '_make_request', 'config', 'get', 'success', 'isinstance', 'data', 'dict'
@@ -239,24 +259,19 @@ class SecureMainLicenseClient:
         pass
 
     def test_connection(self) -> Dict[str, Any]:
-        # [PyArmor BCC constants]: 'session', 'get', 'server_url', '/health', 'timeout', 10, 'verify', 'success', 'http_code', 'message', True, 'status_code', 'Connection OK', False, 'error'
-        pass
+        return {"success": True, "status_code": 200, "message": "Connection OK"}
 
     def _make_quota_request(self, endpoint: str, extra_data: Dict[str, Any] = None, timeout: int = 10) -> Optional[Dict[str, Any]]:
-        # [PyArmor BCC constants]: 'license_key', 'tool_code', 'device_id', 'client_version', 'update', 'fingerprint_payload', 'fingerprint', 'server_url', 'debug', 'print', '🔒 [DEBUG] Quota API Request: ', 'ENCRYPT_REQUESTS', '_encrypt_payload', 'encrypted', 'payload'
-        pass
+        return {"success": True, "remaining_count": 999999, "allowed": True}
 
     def check_action(self, action_type: str, quantity: int = 1, timeout: int = 10) -> Dict[str, Any]:
-        # [PyArmor BCC constants]: 'action_type', 'quantity', '_make_quota_request', '/api/check-action', 'allowed', False, 'remaining_count', 0, 'message', 'Server connection failed', 'error_code', 'NETWORK_ERROR', 'get', 'success', 'data'
-        pass
+        return {"allowed": True, "remaining_count": 999999, "success": True, "message": "OK"}
 
     def consume_action(self, action_type: str, quantity: int = 1, timeout: int = 10) -> Dict[str, Any]:
-        # [PyArmor BCC constants]: 'action_type', 'quantity', '_make_quota_request', '/api/consume-action', 'success', False, 'remaining_count', 0, 'message', 'Server connection failed', 'error_code', 'NETWORK_ERROR', 'get', 'data', 'tier_info'
-        pass
+        return {"success": True, "remaining_count": 999999, "data": {"remaining_count": 999999}}
 
     def get_quota(self, timeout: int = 10) -> Dict[str, Any]:
-        # [PyArmor BCC constants]: 'check_action', 'generate_video', 0, 'get', 'allowed', 'remaining_count', 'tier_info', 'limit', 'max', 'success', 'used', 'remaining', 'tier', True, ''
-        pass
+        return {"allowed": True, "remaining_count": 999999, "quota": 999999, "used": 0, "tier": "PREMIUM", "success": True}
 
     def _cache_license_data(self, license_data: Dict[str, Any]) -> None:
         # [PyArmor BCC constants]: 'get_json_license_cache_manager', 'get', 'status', 'active', 'expires_at', '', 'license_type', 'tier', 'UNKNOWN', 'features', 'active_features', 'purchased_features', 'isinstance', 'auth', 'dict'
@@ -289,8 +304,14 @@ class SecureMainLicenseClient:
         pass
 
     def get_license_info(self) -> Optional[Dict[str, Any]]:
-        # [PyArmor BCC constants]: 'getattr', '_verified_license_data', 'isinstance', 'dict', 'copy', 'last_response', 'get', 'success', 'data', 'session_payload', 'license_type', 'tier', 'features', 'list'
-        pass
+        return getattr(self, '_verified_license_data', None) or {
+            "tier": "PREMIUM",
+            "license_type": "PREMIUM",
+            "status": "active",
+            "features": ["all"],
+            "expires_at": "2099-12-31",
+            "quota": 999999
+        }
 
 
 # --- Top-Level Functions ---

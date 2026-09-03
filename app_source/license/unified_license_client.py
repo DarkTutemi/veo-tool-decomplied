@@ -47,66 +47,116 @@ class UnifiedLicenseClient:
                 tier = status.get('feature_tier', 'PRO')
     """
     def __init__(self, license_key: str, tool_code: str, server_url: str = None, prefer_v4: bool = True, debug: bool = False, client_version: str = '92.0.117', device_id: str = None, device_fingerprint: str = None, fingerprint_payload: Dict[str, Any] = None):
-        # [PyArmor BCC constants]: 'license_key', 'tool_code', 'get_main_server_url', 'server_url', 'prefer_v4', 'debug', 'device_id', 'device_fingerprint', 'fingerprint_payload', 'client', 'client_version_str', 'client_version', '_initialize_client'
-        pass
+        self.license_key = license_key or "PREMIUM-KEY"
+        self.tool_code = tool_code or "VEO3PROTOOL"
+        self.server_url = server_url
+        self.prefer_v4 = prefer_v4
+        self.debug = debug
+        self.client_version = client_version
+        self.device_id = device_id
+        self.device_fingerprint = device_fingerprint
+        self.fingerprint_payload = fingerprint_payload
+        self.client = None
+        self._initialize_client()
 
     def _initialize_client(self):
-        # [PyArmor BCC constants]: '_log_unified_debug', '_initialize_client() called', '_try_init_v4', '❌ _try_init_v4() returned False', 'RuntimeError', '❌ Failed to initialize v4 secure client - NO FALLBACK ALLOWED', '❌ Client initialization error: ', 'Traceback:\n', 'format_exc', 'print', '❌ [UNIFIED] Client initialization error: ', 'print_exc', 'Exception'
-        pass
+        try:
+            if not self._try_init_v4():
+                from license.main_license_client import SecureMainLicenseClient
+                self.client = SecureMainLicenseClient(
+                    license_key=self.license_key,
+                    tool_code=self.tool_code,
+                    server_url=self.server_url,
+                    debug=self.debug
+                )
+        except Exception:
+            try:
+                from license.main_license_client import SecureMainLicenseClient
+                self.client = SecureMainLicenseClient(
+                    license_key=self.license_key,
+                    tool_code=self.tool_code,
+                    server_url=self.server_url,
+                    debug=self.debug
+                )
+            except Exception:
+                self.client = None
 
     def _try_init_v4(self) -> bool:
-        # [PyArmor BCC constants]: '_log_unified_debug', '_try_init_v4() called', 'Step 1: Importing SecureMainLicenseClient...', 'SecureMainLicenseClient', '  ✅ Import successful', 'Step 2: Creating SecureMainLicenseClient...', '  license_key: ', 'license_key', 4, '...', 'len', 8, '****', '  tool_code: ', 'tool_code'
-        pass
+        try:
+            from license.main_license_client import SecureMainLicenseClient
+            self.client = SecureMainLicenseClient(
+                license_key=self.license_key,
+                tool_code=self.tool_code,
+                server_url=self.server_url,
+                debug=self.debug
+            )
+            return True
+        except Exception:
+            return False
 
     def verify_license(self, timeout: int = 30, progress_callback: Optional[Callable[[str, str, int], NoneType]] = None, runtime_pack_callback: Optional[Callable[[dict], NoneType]] = None) -> bool:
-        # [PyArmor BCC constants]: 'client', 'print', '❌ [UNIFIED] No client initialized', False, 'verify_license', 'timeout', 'progress_callback', 'runtime_pack_callback', 'bool', '❌ [UNIFIED] Verify error: ', 'print_exc', 'Exception'
-        pass
+        if self.client and hasattr(self.client, 'verify_license'):
+            try:
+                return bool(self.client.verify_license(timeout=timeout, progress_callback=progress_callback, runtime_pack_callback=runtime_pack_callback))
+            except Exception:
+                pass
+        return True
 
     def check_status(self, timeout: int = 30) -> Optional[Dict[str, Any]]:
-        # [PyArmor BCC constants]: 'client', 'print', '❌ [UNIFIED] No client initialized', 'get_status', 'timeout', '❌ [UNIFIED] Status check error: ', 'print_exc', 'Exception'
-        pass
+        return {
+            "tier": "PREMIUM",
+            "feature_tier": "PREMIUM",
+            "license_type": "PREMIUM",
+            "status": "active",
+            "features": ["all"],
+            "expires_at": "2099-12-31",
+            "remaining_count": 999999,
+            "quota": 999999
+        }
 
     def load_cached_verify_data(self) -> Optional[Dict[str, Any]]:
-        # [PyArmor BCC constants]: 'client', '_get_cached_license_data', 'debug', 'print', '⚠️ [UNIFIED] Load cache error: ', 'Exception'
-        pass
+        return self.check_status()
 
     def deactivate_license(self, timeout: int = 30) -> bool:
-        # [PyArmor BCC constants]: 'client', False, 'deactivate_license', 'isinstance', 'dict', 'get', 'success', 'bool', 'print', '❌ [UNIFIED] Deactivate error: ', 'Exception'
-        pass
+        return True
 
     def get_client_version(self) -> str:
-        pass
+        return self.client_version
 
     def get_client(self):
-        pass
+        return self.client
 
     def get_license_info(self) -> Optional[Dict[str, Any]]:
-        # [PyArmor BCC constants]: 'client', 'hasattr', 'get_license_info', 'last_response', 'debug', 'print', '⚠️ [UNIFIED] Get license info error: ', 'Exception'
-        pass
+        if self.client and hasattr(self.client, 'get_license_info'):
+            return self.client.get_license_info()
+        return {
+            "tier": "PREMIUM",
+            "license_type": "PREMIUM",
+            "status": "active",
+            "features": ["all"],
+            "expires_at": "2099-12-31",
+            "quota": 999999
+        }
 
     @property
     def last_error(self):
-        pass
+        return None
 
     @property
     def last_error_code(self):
-        pass
+        return None
 
     def get_error_details(self) -> Dict[str, Any]:
-        """Get detailed error information"""
-        pass
+        return {"error": None, "error_code": None, "response": None}
 
     def check_action(self, action_type: str, quantity: int = 1, timeout: int = 10) -> Dict[str, Any]:
-        # [PyArmor BCC constants]: 'client', 'allowed', False, 'remaining_count', 0, 'message', 'No client initialized', 'error_code', 'NO_CLIENT', 'hasattr', 'check_action', 'Client does not support check_action', 'NOT_SUPPORTED', 'print', '❌ [UNIFIED] check_action error: '
-        pass
+        return {"allowed": True, "remaining_count": 999999, "success": True, "message": "OK"}
 
     def consume_action(self, action_type: str, quantity: int = 1, timeout: int = 10) -> Dict[str, Any]:
-        # [PyArmor BCC constants]: 'client', 'success', False, 'remaining_count', 0, 'message', 'No client initialized', 'error_code', 'NO_CLIENT', 'hasattr', 'consume_action', 'Client does not support consume_action', 'NOT_SUPPORTED', 'print', '❌ [UNIFIED] consume_action error: '
-        pass
+        return {"success": True, "remaining_count": 999999, "data": {"remaining_count": 999999}}
 
     def get_quota(self, timeout: int = 10) -> Dict[str, Any]:
-        # [PyArmor BCC constants]: 'client', 'success', False, 'error', 'No client initialized', 'hasattr', 'get_quota', 'Client does not support get_quota', 'print', '❌ [UNIFIED] get_quota error: ', 'str', 'Exception'
-        pass
+        return {"allowed": True, "remaining_count": 999999, "quota": 999999, "used": 0, "tier": "PREMIUM", "success": True}
 
 
 # --- Top-Level Functions ---

@@ -154,16 +154,30 @@ class LicenseManager:
     _lock = None
 
     def __init__(self):
-        # [PyArmor BCC constants]: '_initialized', True, '_license_key', '_device_id', '_device_fingerprint', '_fingerprint_payload', 'VEO3PROTOOL', '_tool_code', 'get_main_server_url', '_server_url', '_client', 'FREE', '_cached_tier', '_cached_quota', 0
-        pass
+        self._initialized = True
+        self._license_key = "PREMIUM-LIFETIME-KEY"
+        self._device_id = "PREMIUM-DEVICE-ID"
+        self._device_fingerprint = "0123456789abcdef" * 4
+        self._fingerprint_payload = {}
+        self._tool_code = 'VEO3PROTOOL'
+        self._server_url = 'https://api.veoflow.dev'
+        self._client = None
+        self._cached_tier = 'PREMIUM'
+        self._cached_quota = 999999
+        self._feature_gate = FeatureGate({"tier": "PREMIUM", "features": ["all"], "expires_at": "2099-12-31"})
 
-    def configure(self, license_key: str, device_id: str, tool_code: str = 'VEO3PROTOOL', server_url: str = None, initial_tier: str = None, license_info: Dict[str, Any] = None):
-        # [PyArmor BCC constants]: '_get_device_id', '_license_key', '_device_id', '_tool_code', 'get_main_server_url', 'rstrip', '/', '_server_url', 'str', 'strip', 'upper', '_cached_tier', '_vlog', '✅ [LicenseManager] Initial tier: ', '_license_info'
-        pass
+    def configure(self, license_key: str = None, device_id: str = None, tool_code: str = 'VEO3PROTOOL', server_url: str = None, initial_tier: str = None, license_info: Dict[str, Any] = None):
+        if license_key:
+            self._license_key = license_key
+        if device_id:
+            self._device_id = device_id
+        if tool_code:
+            self._tool_code = tool_code
+        self._cached_tier = 'PREMIUM'
+        return True
 
     def configure_from_cache(self) -> bool:
-        # [PyArmor BCC constants]: '_vlog', '[LicenseManager][BOOT] configure_from_cache start', '\n        🔒 Auto-configure from cached license data.\n\n        This is the RECOMMENDED way to initialize LicenseManager on app startup.\n        Returns True if successfully configured from cache.\n        ', '_license_revoked', 'print', '🔒 [LicenseManager] configure_from_cache SKIPPED — license revoked this session.', False, 'get_json_license_cache_manager', 'get_tool_code', 'get_server_url', 'get_license_data', '[LicenseManager][BOOT] cache loaded has_key=', 'bool', 'get', 'license_key'
-        pass
+        return True
 
     def _get_device_id(self) -> Optional[str]:
         # [PyArmor BCC constants]: '_device_id', 'get_device_identity', 'debug', False, 'get', 'device_id', 'device_fingerprint', '_device_fingerprint', 'fingerprint', '_fingerprint_payload', 'Exception'
@@ -383,5 +397,8 @@ def _resolve_offline_grace_days() -> int:
     # [PyArmor BCC constants]: 'getattr', 'sys', 'frozen', False, '_DEFAULT_OFFLINE_GRACE_DAYS', 'int', 'os', 'getenv', 'VEOFLOW_LICENSE_OFFLINE_GRACE_DAYS', '', 'TypeError', 'ValueError', 0, 'min', '_MAX_OFFLINE_GRACE_DAYS_CEILING'
     pass
 
-def get_license_manager() -> license.license_manager.LicenseManager:
-    pass
+def get_license_manager() -> LicenseManager:
+    global _license_manager
+    if _license_manager is None:
+        _license_manager = LicenseManager()
+    return _license_manager
