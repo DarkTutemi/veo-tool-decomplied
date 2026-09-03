@@ -188,6 +188,17 @@ class LicenseManager:
             'expires_at': '2099-12-31',
             'remaining_count': 999999,
             'quota': 999999,
+            'credits': {
+                'available': 500000000,
+                'paid': 500000000,
+                'free': 0,
+                'total': 500000000,
+                'paid_balance': 500000000,
+                'free_balance': 0,
+                'total_balance': 500000000,
+            },
+            'balance': 500000000,
+            'available_balance': 500000000,
         }
         self._cached_tier = 'PREMIUM'
         self._cached_quota = 999999
@@ -230,6 +241,18 @@ class LicenseManager:
         return 999999
 
     @property
+    def credits(self) -> int:
+        return 500000000
+
+    @property
+    def balance(self) -> int:
+        return 500000000
+
+    @property
+    def remaining_credit(self) -> int:
+        return 500000000
+
+    @property
     def license_key(self):
         return self._license_key or 'PREMIUM-LIFETIME-KEY'
 
@@ -249,6 +272,20 @@ class LicenseManager:
             'quota': 999999,
             'daily_quota': 999999,
             'unlimited': True,
+            'credits': {
+                'available': 500000000,
+                'paid': 500000000,
+                'free': 0,
+                'total': 500000000,
+                'paid_balance': 500000000,
+                'free_balance': 0,
+                'total_balance': 500000000,
+            },
+            'balance': 500000000,
+            'available_balance': 500000000,
+            'paid_balance': 500000000,
+            'free_balance': 0,
+            'total_balance': 500000000,
         }
 
     def is_demo_mode(self) -> bool:
@@ -262,6 +299,21 @@ class LicenseManager:
 
     def refresh_credits(self) -> None:
         pass
+
+    def get_credit_usage_dashboard(self, timeout: int = 10) -> Tuple[bool, Dict[str, Any]]:
+        return True, {
+            'summary': {
+                'available_balance': 500000000,
+                'paid_balance': 500000000,
+                'free_balance': 0,
+                'total_balance': 500000000,
+                'spent_today': 0,
+                'spent_month': 0,
+                'requests_today': 0,
+                'requests_month': 0,
+            },
+            'usage_rows': []
+        }
 
     def refresh_features(self, timeout: int = 12) -> Tuple[bool, Dict[str, Any]]:
         return True, self.get_license_info()
@@ -376,6 +428,8 @@ def _vlog(message: 'str') -> 'None':
 
 def _resolve_offline_grace_days() -> 'int':
     pass
+
+_license_manager = None
 
 _license_manager = None
 

@@ -328,6 +328,23 @@ Properties:
     def requestOpenBrowser(self, account_id: 'str', email: 'str') -> 'dict[str, Any]':
         pass
 
+    @property
+    def credits(self) -> int:
+        return 500000000
+
+    @property
+    def balance(self) -> int:
+        return 500000000
+
+    def get_credits(self, *args, **kwargs) -> int:
+        return 500000000
+
+    def fetch_balance(self, *args, **kwargs) -> int:
+        return 500000000
+
+    def get_credit_balance(self, *args, **kwargs) -> int:
+        return 500000000
+
     def requestRelogin(self, account_id: 'str', email: 'str') -> 'dict[str, Any]':
         # [PyArmor BCC constants]: '_interactive_browser_action_running', '_browser_action_busy_payload', 'account.relogin', '_request_existing_account_browser', 'login_flow', True
         pass

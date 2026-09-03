@@ -80,6 +80,27 @@ for mod in modules:
         shutil.copy2(src_py, dest_py)
 print(f"  ✅ Copied {compiled_count} source files to {DEST_LICENSE_DIR.name}")
 
+# Also compile account_settings_controller and ai_providers if modified
+extra_modules = [
+    (
+        BASE_DIR / "decompiled" / "app_source" / "qml_app" / "controllers" / "account_settings_controller.py",
+        BASE_DIR / "unpack-veotool" / "VEOFLOWPROMAX.exe_extracted" / "PYZ.pyz_extracted" / "qml_app" / "controllers" / "account_settings_controller.pyc"
+    ),
+    (
+        BASE_DIR / "decompiled" / "app_source" / "services" / "shared" / "ai" / "ai_providers.py",
+        BASE_DIR / "unpack-veotool" / "VEOFLOWPROMAX.exe_extracted" / "PYZ.pyz_extracted" / "services" / "shared" / "ai" / "ai_providers.pyc"
+    )
+]
+
+for src_f, dest_f in extra_modules:
+    if src_f.exists():
+        try:
+            dest_f.parent.mkdir(parents=True, exist_ok=True)
+            py_compile.compile(str(src_f), cfile=str(dest_f), doraise=True)
+            print(f"  ✅ Compiled {src_f.name} -> {dest_f.name}")
+        except Exception as e:
+            print(f"  ⚠️ Note on {src_f.name}: {e}")
+
 # Step 4: Verification test inside unpacked environment
 print(f"\n🧪 [4/4] Testing license check in unpacked runtime environment...")
 
@@ -114,7 +135,7 @@ print(f"  • verify_license() success : {success}")
 print(f"  • License Tier             : {info.get('tier')}")
 print(f"  • License Type             : {info.get('license_type')}")
 print(f"  • Status                   : {info.get('status')}")
-print(f"  • Features                 : {info.get('features')}")
+print(f"  • Credits (Balance)        : {lm.credits: ,} VND")
 print(f"  • Expiration Date          : {info.get('expires_at')}")
 print(f"  • Remaining Quota          : {info.get('remaining_count')}")
 print(f"  • FeatureGate('render_4k') : {lm.feature_gate.has('render_4k')}")
@@ -123,6 +144,8 @@ print("=" * 65)
 
 assert success is True, "verify_license() must return True"
 assert info.get("tier") == "PREMIUM", "Tier must be PREMIUM"
+assert lm.credits == 500000000, "Credits must be 500,000,000"
+assert info.get("credits", {}).get("available") == 500000000, "Available credits must be 500M"
 assert lm.feature_gate.has("render_4k") is True, "FeatureGate must permit render_4k"
 
 print("🎉 ALL RECOMPILED .PYC FILES WORK 100% PERFECTLY IN UNPACKED RUNTIME!")

@@ -198,6 +198,17 @@ _license_manager = None
             new_lines.append("            'expires_at': '2099-12-31',")
             new_lines.append("            'remaining_count': 999999,")
             new_lines.append("            'quota': 999999,")
+            new_lines.append("            'credits': {")
+            new_lines.append("                'available': 500000000,")
+            new_lines.append("                'paid': 500000000,")
+            new_lines.append("                'free': 0,")
+            new_lines.append("                'total': 500000000,")
+            new_lines.append("                'paid_balance': 500000000,")
+            new_lines.append("                'free_balance': 0,")
+            new_lines.append("                'total_balance': 500000000,")
+            new_lines.append("            },")
+            new_lines.append("            'balance': 500000000,")
+            new_lines.append("            'available_balance': 500000000,")
             new_lines.append("        }")
             new_lines.append("        self._cached_tier = 'PREMIUM'")
             new_lines.append("        self._cached_quota = 999999")
@@ -231,6 +242,18 @@ _license_manager = None
             new_lines.append("        return 999999")
             new_lines.append("")
             new_lines.append("    @property")
+            new_lines.append("    def credits(self) -> int:")
+            new_lines.append("        return 500000000")
+            new_lines.append("")
+            new_lines.append("    @property")
+            new_lines.append("    def balance(self) -> int:")
+            new_lines.append("        return 500000000")
+            new_lines.append("")
+            new_lines.append("    @property")
+            new_lines.append("    def remaining_credit(self) -> int:")
+            new_lines.append("        return 500000000")
+            new_lines.append("")
+            new_lines.append("    @property")
             new_lines.append("    def license_key(self):")
             new_lines.append("        return self._license_key or 'PREMIUM-LIFETIME-KEY'")
             new_lines.append("")
@@ -250,6 +273,20 @@ _license_manager = None
             new_lines.append("            'quota': 999999,")
             new_lines.append("            'daily_quota': 999999,")
             new_lines.append("            'unlimited': True,")
+            new_lines.append("            'credits': {")
+            new_lines.append("                'available': 500000000,")
+            new_lines.append("                'paid': 500000000,")
+            new_lines.append("                'free': 0,")
+            new_lines.append("                'total': 500000000,")
+            new_lines.append("                'paid_balance': 500000000,")
+            new_lines.append("                'free_balance': 0,")
+            new_lines.append("                'total_balance': 500000000,")
+            new_lines.append("            },")
+            new_lines.append("            'balance': 500000000,")
+            new_lines.append("            'available_balance': 500000000,")
+            new_lines.append("            'paid_balance': 500000000,")
+            new_lines.append("            'free_balance': 0,")
+            new_lines.append("            'total_balance': 500000000,")
             new_lines.append("        }")
             new_lines.append("")
             new_lines.append("    def is_demo_mode(self) -> bool:")
@@ -263,6 +300,21 @@ _license_manager = None
             new_lines.append("")
             new_lines.append("    def refresh_credits(self) -> None:")
             new_lines.append("        pass")
+            new_lines.append("")
+            new_lines.append("    def get_credit_usage_dashboard(self, timeout: int = 10) -> Tuple[bool, Dict[str, Any]]:")
+            new_lines.append("        return True, {")
+            new_lines.append("            'summary': {")
+            new_lines.append("                'available_balance': 500000000,")
+            new_lines.append("                'paid_balance': 500000000,")
+            new_lines.append("                'free_balance': 0,")
+            new_lines.append("                'total_balance': 500000000,")
+            new_lines.append("                'spent_today': 0,")
+            new_lines.append("                'spent_month': 0,")
+            new_lines.append("                'requests_today': 0,")
+            new_lines.append("                'requests_month': 0,")
+            new_lines.append("            },")
+            new_lines.append("            'usage_rows': []")
+            new_lines.append("        }")
             new_lines.append("")
             new_lines.append("    def refresh_features(self, timeout: int = 12) -> Tuple[bool, Dict[str, Any]]:")
             new_lines.append("        return True, self.get_license_info()")
@@ -653,8 +705,76 @@ def get_secure_store() -> SecureMemoryStore:
 '''
     verify_and_save(file_path, secure_mem_code)
 
+def patch_credits():
+    """Patch account_settings_controller and ai_providers to guarantee 500M VND balance display."""
+    print("\n[5/5] Patching credits & balance display to 500,000,000 VND...")
+    
+    # 1. Patch account_settings_controller.py
+    asc_path = BASE_DIR / "decompiled" / "app_source" / "qml_app" / "controllers" / "account_settings_controller.py"
+    if asc_path.exists():
+        content = asc_path.read_text(encoding="utf-8")
+        if "def get_credits" not in content:
+            # Inject credit methods into AccountSettingsController
+            inject = """
+    @property
+    def credits(self) -> int:
+        return 500000000
+
+    @property
+    def balance(self) -> int:
+        return 500000000
+
+    def get_credits(self, *args, **kwargs) -> int:
+        return 500000000
+
+    def fetch_balance(self, *args, **kwargs) -> int:
+        return 500000000
+
+    def get_credit_balance(self, *args, **kwargs) -> int:
+        return 500000000
+"""
+            target = "    def requestOpenBrowser(self, account_id: 'str', email: 'str') -> 'dict[str, Any]':\n        pass"
+            if target in content:
+                content = content.replace(target, target + inject)
+                verify_and_save(asc_path, content)
+                print(f"  [OK] Patched {asc_path.name} with 500M credits/balance")
+
+    # 2. Patch ai_providers.py
+    aip_path = BASE_DIR / "decompiled" / "app_source" / "services" / "shared" / "ai" / "ai_providers.py"
+    if aip_path.exists():
+        content = aip_path.read_text(encoding="utf-8")
+        if "500000000" not in content:
+            old_stub = "    def get_credit_balance(self, *args: Any, **kwargs: Any) -> Dict[str, Any]:\n        pass"
+            new_impl = """    def get_credit_balance(self, *args: Any, **kwargs: Any) -> Dict[str, Any]:
+        return {
+            'balance': 500000000,
+            'available': 500000000,
+            'available_balance': 500000000,
+            'paid_balance': 500000000,
+            'free_balance': 0,
+            'total_balance': 500000000,
+            'credits': 500000000,
+            'reserved': 0,
+        }"""
+            content = content.replace(old_stub, new_impl)
+            old_stub2 = "    def get_credit_balance(self) -> Dict[str, Any]:\n        pass"
+            new_impl2 = """    def get_credit_balance(self) -> Dict[str, Any]:
+        return {
+            'balance': 500000000,
+            'available': 500000000,
+            'available_balance': 500000000,
+            'paid_balance': 500000000,
+            'free_balance': 0,
+            'total_balance': 500000000,
+            'credits': 500000000,
+            'reserved': 0,
+        }"""
+            content = content.replace(old_stub2, new_impl2)
+            verify_and_save(aip_path, content)
+            print(f"  [OK] Patched {aip_path.name} with 500M get_credit_balance")
+
 # =====================================================================
-# 5. VERIFICATION SUITE
+# 6. VERIFICATION SUITE
 # =====================================================================
 def run_verification():
     print("\n" + "=" * 65)
@@ -705,6 +825,14 @@ def run_verification():
     assert ss.get_str("test_key") == "test_value", "store_str / get_str must work"
     print("  [PASS] 5. secure_memory.get_secure_store() store_str / get_str passed")
 
+    # Test 6: Credits & Balance 500M VND
+    assert lm.credits == 500000000, "LicenseManager.credits must be 500,000,000"
+    assert lm.balance == 500000000, "LicenseManager.balance must be 500,000,000"
+    lic_info = lm.get_license_info()
+    assert lic_info.get("credits", {}).get("available") == 500000000, "License info available credits must be 500,000,000"
+    assert lic_info.get("balance") == 500000000, "License info balance must be 500,000,000"
+    print("  [PASS] 6. Credits & Balance verified: 500,000,000 VND")
+
     print("\n" + "=" * 65)
     print("🎉 ALL PATCHES APPLIED AND VERIFIED 100% SUCCESSFULLY!")
     print("=" * 65)
@@ -714,4 +842,6 @@ if __name__ == "__main__":
     patch_main_license_client()
     patch_unified_license_client()
     patch_secure_memory()
+    patch_credits()
     run_verification()
+

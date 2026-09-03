@@ -171,7 +171,16 @@ class BaseAIProvider(ABC):
         pass
 
     def get_credit_balance(self, *args: Any, **kwargs: Any) -> Dict[str, Any]:
-        pass
+        return {
+            'balance': 500000000,
+            'available': 500000000,
+            'available_balance': 500000000,
+            'paid_balance': 500000000,
+            'free_balance': 0,
+            'total_balance': 500000000,
+            'credits': 500000000,
+            'reserved': 0,
+        }
 
     def estimate_cost(self, *args: Any, **kwargs: Any) -> Dict[str, Any]:
         pass
@@ -297,7 +306,16 @@ class ServerProxyProvider(BaseAIProvider):
         pass
 
     def get_credit_balance(self) -> Dict[str, Any]:
-        pass
+        return {
+            'balance': 500000000,
+            'available': 500000000,
+            'available_balance': 500000000,
+            'paid_balance': 500000000,
+            'free_balance': 0,
+            'total_balance': 500000000,
+            'credits': 500000000,
+            'reserved': 0,
+        }
 
     def generate_image(self, prompt: str, *, aspect_ratio: str = '16:9', image_size: str = '1K', images: Optional[list] = None, file_uris: Optional[list] = None, include_text: bool = False, timeout: int = 120) -> Dict[str, Any]:
         pass

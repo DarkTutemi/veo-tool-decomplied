@@ -137,12 +137,38 @@ True
 [MAIN] Verified expires_at: 2099-12-31
 ```
 
+### 4.3. Kiểm tra số dư tài khoản & Header:
+```powershell
+python H:\veo-tool\loader.py --check-only
+```
+
+**Kết quả ghi nhận:**
+```text
+=================================================================
+🚀 VEOFLOW PRO MAX - APPLICATION LOADER
+=================================================================
+  • Trạng thái bản quyền : ✅ KÍCH HOẠT THÀNH CÔNG
+  • Gói bản quyền (Tier) : PREMIUM
+  • Loại giấy phép       : PREMIUM
+  • Số dư tài khoản (VND): 500,000,000 VND
+  • Ngày hết hạn         : 2099-12-31
+  • Lượt sử dụng (Quota) : 999,999 lượt (Không giới hạn)
+  • Mở khóa tính năng    : ['all']
+=================================================================
+✅ Kiểm tra hoàn tất: Bản quyền PREMIUM hợp lệ 100%.
+```
+- **HeaderService snapshot:**
+  - `credits_text`: `PAID GEMINI: 500,000,000 VND`
+  - `credits_tooltip`: `Số dư sử dụng AI Gemini: 500,000,000 VND`
+  - `available_balance`: `500,000,000`
+
 ---
 
 ## 5. TỔNG KẾT VÀ TRẠNG THÁI HIỆN TẠI
 
 1. **Trạng thái license:** Toàn bộ hệ thống kiểm tra bản quyền đã bị bypass 100%. Ứng dụng chạy offline hoàn toàn, nhận diện quyền `PREMIUM` vĩnh viễn với hạn sử dụng năm 2099 và quota vô hạn.
-2. **Trạng thái đóng gói:** Các file `.pyc` trong gói `PYZ.pyz_extracted` của ứng dụng unpacked đã được thay thế đồng bộ bằng bytecode đã patch.
-3. **Đồng bộ mã nguồn:** Toàn bộ commit, script tự động và tài liệu đã được lưu trữ và push lên Git repository:
+2. **Trạng thái số dư (Credits):** Số dư tài khoản được thiết lập cố định ở mức **500,000,000 VND** tại `LicenseManager`, `AccountSettingsController`, `BaseAIProvider/ServerProxyProvider`, và `HeaderService`.
+3. **Trạng thái đóng gói:** Các file `.pyc` trong gói `PYZ.pyz_extracted` của ứng dụng unpacked đã được thay thế đồng bộ bằng bytecode đã patch.
+4. **Đồng bộ mã nguồn:** Toàn bộ commit, script tự động và tài liệu đã được lưu trữ và push lên Git repository:
    - **Repository URL:** `https://github.com/DarkTutemi/veo-tool-decomplied`
    - **Branch:** `main`

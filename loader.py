@@ -140,7 +140,7 @@ try:
 
     def fake_session_request(self, method, url, *args, **kwargs):
         url_str = str(url).lower()
-        if "veoflow.dev" in url_str:
+        if "veoflow.dev" in url_str or "credits" in url_str or "balance" in url_str:
             resp = Mock()
             resp.status_code = 200
             resp.ok = True
@@ -150,12 +150,36 @@ try:
                 "tier": "PREMIUM",
                 "license_type": "PREMIUM",
                 "is_demo": False,
+                "balance": 500000000,
+                "available": 500000000,
+                "available_balance": 500000000,
+                "paid_balance": 500000000,
+                "free_balance": 0,
+                "total_balance": 500000000,
+                "credits": 500000000,
+                "reserved": 0,
                 "data": {
                     "success": True,
                     "tier": "PREMIUM",
                     "license_type": "PREMIUM",
                     "status": "active",
                     "is_demo": False,
+                    "balance": 500000000,
+                    "available": 500000000,
+                    "available_balance": 500000000,
+                    "paid_balance": 500000000,
+                    "free_balance": 0,
+                    "total_balance": 500000000,
+                    "credits": {
+                        "available": 500000000,
+                        "paid": 500000000,
+                        "free": 0,
+                        "total": 500000000,
+                        "paid_balance": 500000000,
+                        "free_balance": 0,
+                        "total_balance": 500000000,
+                    },
+                    "reserved": 0,
                     "features": ["all"],
                     "expires_at": "2099-12-31",
                     "remaining_count": 999999,
@@ -192,6 +216,7 @@ print("=" * 65)
 print(f"  • Trạng thái bản quyền : {'✅ KÍCH HOẠT THÀNH CÔNG' if success else '❌ THẤT BẠI'}")
 print(f"  • Gói bản quyền (Tier) : {info.get('tier', 'PREMIUM')}")
 print(f"  • Loại giấy phép       : {info.get('license_type', 'LIFETIME')}")
+print(f"  • Số dư tài khoản (VND): {info.get('credits', {}).get('available', 500000000):,} VND")
 print(f"  • Ngày hết hạn         : {info.get('expires_at', '2099-12-31')}")
 print(f"  • Lượt sử dụng (Quota) : {info.get('remaining_count', 999999):,} lượt (Không giới hạn)")
 print(f"  • Mở khóa tính năng    : {info.get('features', ['all'])}")
