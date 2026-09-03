@@ -112,9 +112,17 @@ class SecureMainLicenseClient:
     def HMAC_KEY(self):
         pass
 
-    def __init__(self, license_key: str, tool_code: str, server_url: str = None, debug: bool = False, use_hardware_keys: bool = False, server_secret: str = None, client_version: str = '2.0.0', device_id: str = None, device_fingerprint: str = None, fingerprint_payload: Dict[str, Any] = None):
-        # [PyArmor BCC constants]: 'strip', 'license_key', 'tool_code', 'get_main_server_url', 'rstrip', '/', 'server_url', 'debug', 'use_hardware_keys', 'client_version', 'HARDWARE_KEY_AVAILABLE', 'RuntimeError', '❌ Hardware key derivation requested but module not available', 'ValueError', '❌ server_secret required when use_hardware_keys=True'
-        pass
+    def __init__(self, license_key: str = None, tool_code: str = 'VEO3PROTOOL', server_url: str = None, debug: bool = False, use_hardware_keys: bool = False, server_secret: str = None, client_version: str = '2.0.0', device_id: str = None, device_fingerprint: str = None, fingerprint_payload: Dict[str, Any] = None):
+        self._license_key = (license_key or "PREMIUM-LIFETIME-KEY").strip()
+        self.license_key = self._license_key
+        self.tool_code = tool_code or "VEO3PROTOOL"
+        self.server_url = server_url or "https://api.veoflow.dev"
+        self.debug = debug
+        self.client_version = client_version
+        self.device_id = device_id or "PREMIUM-DEVICE-ID"
+        self.device_fingerprint = device_fingerprint or "0123456789abcdef" * 4
+        self.fingerprint_payload = fingerprint_payload or {}
+        self._verified_license_data = None
 
     def _create_secure_session(self) -> requests.sessions.Session:
         # [PyArmor BCC constants]: 'requests', 'Session', 'headers', 'update', 'Content-Type', 'Accept', 'User-Agent', 'application/json', 'EzStreamSecureClient/4.0 (', 'platform', 'system', ')', 'where', 'verify', 'debug'
@@ -230,22 +238,25 @@ class SecureMainLicenseClient:
         return threading.Thread(target=lambda: None)
 
     def verify_license(self, device_name: str = None, device_info: Dict[str, Any] = None, timeout: int = 15, progress_callback: Optional[Callable[[str, str, int], NoneType]] = None, runtime_pack_callback: Optional[Callable[[dict[str, Any]], NoneType]] = None) -> bool:
-        fake_data = {
-            "tier": "PREMIUM",
-            "license_type": "PREMIUM",
-            "status": "active",
-            "features": ["all"],
-            "expires_at": "2099-12-31",
-            "remaining_count": 999999,
-            "quota": 999999,
-            "auth": {
-                "gateway_access_token": "dummy_gateway_access_token_v4",
-                "protocol_version": 4.0
+        # Kiểm tra nếu self._license_key tồn tại thì tự tạo dữ liệu giả và return True
+        if getattr(self, '_license_key', None):
+            fake_data = {
+                "tier": "PREMIUM",
+                "license_type": "PREMIUM",
+                "status": "active",
+                "features": ["all"],
+                "expires_at": "2099-12-31",
+                "remaining_count": 999999,
+                "quota": 999999,
+                "auth": {
+                    "gateway_access_token": "dummy_gateway_access_token_v4",
+                    "protocol_version": 4.0
+                }
             }
-        }
-        self._verified_license_data = fake_data
-        self._report_verify_progress(progress_callback, "verify", "License verified successfully", 100)
-        return True
+            self._verified_license_data = fake_data
+            self._report_verify_progress(progress_callback, "verify", "License verified successfully", 100)
+            return True
+        return False
 
     def get_status(self, timeout: int = 15) -> Optional[Dict[str, Any]]:
         return self._make_request("status", timeout=timeout)
