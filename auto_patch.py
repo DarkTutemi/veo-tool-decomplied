@@ -453,7 +453,67 @@ except ImportError:
     verify_and_save(file_path, "\n".join(new_lines) + "\n")
 
 # =====================================================================
-# 4. VERIFICATION SUITE
+# 4. PATCH secure_memory.py
+# =====================================================================
+def patch_secure_memory():
+    file_path = LICENSE_DIR / "secure_memory.py"
+    print(f"\n[4/4] Patching {file_path.name}...")
+    secure_mem_code = '''"""
+Decompiled / Reconstructed Module: license.secure_memory - Patched
+Secure Memory Store - Safe Offline Implementation
+"""
+
+from __future__ import annotations
+import sys, os, typing
+from typing import Any, Dict, List, Optional, Tuple, Union, Callable
+
+class SecureMemoryStore:
+    """Safe offline in-memory store for license keys & tokens."""
+    def __init__(self):
+        self._store: Dict[str, Any] = {}
+
+    def store_bytes(self, name: str, value: bytes):
+        self._store[name] = value
+
+    def store_str(self, name: str, value: str):
+        self._store[name] = value
+
+    def get_bytes(self, name: str) -> bytes:
+        val = self._store.get(name, b"")
+        if isinstance(val, str):
+            return val.encode("utf-8")
+        return val or b""
+
+    def get_str(self, name: str) -> str:
+        val = self._store.get(name, "")
+        if isinstance(val, bytes):
+            return val.decode("utf-8", errors="ignore")
+        return str(val or "")
+
+    def destroy(self):
+        self._store.clear()
+
+    @staticmethod
+    def _xor(data: bytes, mask: bytes) -> bytes:
+        return bytes(a ^ b for a, b in zip(data, mask))
+
+    @staticmethod
+    def _zero_bytearray(ba: bytearray):
+        for i in range(len(ba)):
+            ba[i] = 0
+
+_secure_store = None
+
+def get_secure_store() -> SecureMemoryStore:
+    global _secure_store
+    if _secure_store is None:
+        _secure_store = SecureMemoryStore()
+    return _secure_store
+'''
+    verify_and_save(file_path, secure_mem_code)
+
+# =====================================================================
+# 5. VERIFICATION SUITE
 # =====================================================================
 def run_verification():
     print("\n" + "=" * 65)
@@ -496,6 +556,14 @@ def run_verification():
     assert uc_none._cached_verify_data["tier"] == "PREMIUM"
     print("  [PASS] 4. UnifiedLicenseClient(client=None).verify_license() == True with PREMIUM cache")
 
+    # Test 5: SecureMemoryStore
+    from license.secure_memory import get_secure_store
+    ss = get_secure_store()
+    assert ss is not None, "get_secure_store() must not be None"
+    ss.store_str("test_key", "test_value")
+    assert ss.get_str("test_key") == "test_value", "store_str / get_str must work"
+    print("  [PASS] 5. secure_memory.get_secure_store() store_str / get_str passed")
+
     print("\n" + "=" * 65)
     print("🎉 ALL PATCHES APPLIED AND VERIFIED 100% SUCCESSFULLY!")
     print("=" * 65)
@@ -504,4 +572,5 @@ if __name__ == "__main__":
     patch_license_manager()
     patch_main_license_client()
     patch_unified_license_client()
+    patch_secure_memory()
     run_verification()

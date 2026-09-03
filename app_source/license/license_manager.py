@@ -333,6 +333,8 @@ def _resolve_offline_grace_days() -> 'int':
 
 _license_manager = None
 
+_license_manager = None
+
 def get_license_manager() -> LicenseManager:
     global _license_manager
     try:

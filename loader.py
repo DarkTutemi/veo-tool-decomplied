@@ -89,7 +89,48 @@ class AutoStubLoader(importlib.abc.Loader):
 
 sys.meta_path.append(AutoStubFinder())
 
-# 6. Verify and configure patched license manager
+# 6. Patch secure_memory & certifi
+from types import ModuleType
+
+class FakeSecureStore:
+    def store_bytes(self, name, value): pass
+    def store_str(self, name, value): pass
+    def get_bytes(self, name): return b''
+    def get_str(self, name): return ''
+    def destroy(self): pass
+
+class FakeSecureModule(ModuleType):
+    def __getattr__(self, name):
+        if name == 'get_secure_store':
+            return lambda: FakeSecureStore()
+        if name == 'SecureMemoryStore':
+            return FakeSecureStore
+        return lambda *a, **kw: None
+
+sm = FakeSecureModule('license.secure_memory')
+sys.modules['license.secure_memory'] = sm
+
+# Patch certifi to point to a valid cacert.pem
+cacert_candidate = os.path.join(PYZ_DIR, "certifi", "cacert.pem")
+if not os.path.exists(cacert_candidate):
+    sys_cacert = os.path.expandvars(r"%APPDATA%\uv\python\cpython-3.12.13-windows-x86_64-none\Lib\site-packages\pip\_vendor\certifi\cacert.pem")
+    if os.path.exists(sys_cacert):
+        os.makedirs(os.path.dirname(cacert_candidate), exist_ok=True)
+        shutil.copy2(sys_cacert, cacert_candidate)
+    else:
+        os.makedirs(os.path.dirname(cacert_candidate), exist_ok=True)
+        with open(cacert_candidate, "w") as f: f.write("")
+
+os.environ["SSL_CERT_FILE"] = cacert_candidate
+os.environ["REQUESTS_CA_BUNDLE"] = cacert_candidate
+
+try:
+    import certifi
+    certifi.where = lambda: cacert_candidate
+except Exception:
+    pass
+
+# 7. Verify and configure patched license manager
 from license.license_manager import get_license_manager
 lm = get_license_manager()
 lm.configure(license_key="PREMIUM-LIFETIME-KEY", device_id="PREMIUM-DEVICE-ID")
