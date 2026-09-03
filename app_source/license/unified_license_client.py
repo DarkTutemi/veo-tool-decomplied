@@ -47,8 +47,8 @@ class UnifiedLicenseClient:
                 tier = status.get('feature_tier', 'PRO')
     """
     def __init__(self, license_key: str, tool_code: str, server_url: str = None, prefer_v4: bool = True, debug: bool = False, client_version: str = '92.0.117', device_id: str = None, device_fingerprint: str = None, fingerprint_payload: Dict[str, Any] = None):
-        self.license_key = license_key or "PREMIUM-KEY"
-        self.tool_code = tool_code or "VEO3PROTOOL"
+        self.license_key = license_key or 'PREMIUM-KEY'
+        self.tool_code = tool_code or 'VEO3PROTOOL'
         self.server_url = server_url
         self.prefer_v4 = prefer_v4
         self.debug = debug
@@ -63,54 +63,36 @@ class UnifiedLicenseClient:
         try:
             if not self._try_init_v4():
                 from license.main_license_client import SecureMainLicenseClient
-                self.client = SecureMainLicenseClient(
-                    license_key=self.license_key,
-                    tool_code=self.tool_code,
-                    server_url=self.server_url,
-                    debug=self.debug
-                )
+                self.client = SecureMainLicenseClient(license_key=self.license_key, tool_code=self.tool_code, server_url=self.server_url, debug=self.debug)
         except Exception:
             try:
                 from license.main_license_client import SecureMainLicenseClient
-                self.client = SecureMainLicenseClient(
-                    license_key=self.license_key,
-                    tool_code=self.tool_code,
-                    server_url=self.server_url,
-                    debug=self.debug
-                )
+                self.client = SecureMainLicenseClient(license_key=self.license_key, tool_code=self.tool_code, server_url=self.server_url, debug=self.debug)
             except Exception:
                 self.client = None
 
     def _try_init_v4(self) -> bool:
         try:
             from license.main_license_client import SecureMainLicenseClient
-            self.client = SecureMainLicenseClient(
-                license_key=self.license_key,
-                tool_code=self.tool_code,
-                server_url=self.server_url,
-                debug=self.debug
-            )
+            self.client = SecureMainLicenseClient(license_key=self.license_key, tool_code=self.tool_code, server_url=self.server_url, debug=self.debug)
             return True
         except Exception:
             return False
-
     def verify_license(self, timeout: int = 30, progress_callback: Optional[Callable[[str, str, int], NoneType]] = None, runtime_pack_callback: Optional[Callable[[dict], NoneType]] = None) -> bool:
         if self.client is None:
             self._cached_verify_data = {
-                "success": True,
-                "tier": "PREMIUM",
-                "license_type": "PREMIUM",
-                "status": "active",
-                "features": ["all"],
-                "expires_at": "2099-12-31",
-                "remaining_count": 999999,
-                "quota": 999999,
-                "auth": {
-                    "gateway_access_token": "fake"
-                }
+                'success': True,
+                'tier': 'PREMIUM',
+                'license_type': 'PREMIUM',
+                'status': 'active',
+                'features': ['all'],
+                'expires_at': '2099-12-31',
+                'remaining_count': 999999,
+                'quota': 999999,
+                'auth': {'gateway_access_token': 'fake'}
             }
             if progress_callback:
-                try: progress_callback("verify", "License verified successfully (mock)", 100)
+                try: progress_callback('verify', 'License verified successfully (mock)', 100)
                 except Exception: pass
             return True
 
@@ -120,7 +102,6 @@ class UnifiedLicenseClient:
             except Exception:
                 pass
         return True
-
     def check_status(self, timeout: int = 30) -> Optional[Dict[str, Any]]:
         return {
             "tier": "PREMIUM",

@@ -92,7 +92,6 @@ class FeatureGate:
 
     def require(self, code: str):
         return True
-
     def expires_at(self, code: str) -> Optional[str]:
         # [PyArmor BCC constants]: 'detail', 'get', 'expires_at'
         pass
@@ -155,30 +154,26 @@ class LicenseManager:
 
     def __init__(self):
         self._initialized = True
-        self._license_key = "PREMIUM-LIFETIME-KEY"
-        self._device_id = "PREMIUM-DEVICE-ID"
-        self._device_fingerprint = "0123456789abcdef" * 4
+        self._license_key = 'PREMIUM-LIFETIME-KEY'
+        self._device_id = 'PREMIUM-DEVICE-ID'
+        self._device_fingerprint = '0123456789abcdef' * 4
         self._fingerprint_payload = {}
         self._tool_code = 'VEO3PROTOOL'
         self._server_url = 'https://api.veoflow.dev'
         self._client = None
         self._cached_tier = 'PREMIUM'
         self._cached_quota = 999999
-        self._feature_gate = FeatureGate({"tier": "PREMIUM", "features": ["all"], "expires_at": "2099-12-31"})
+        self._feature_gate = FeatureGate({'tier': 'PREMIUM', 'features': ['all'], 'expires_at': '2099-12-31'})
 
     def configure(self, license_key: str = None, device_id: str = None, tool_code: str = 'VEO3PROTOOL', server_url: str = None, initial_tier: str = None, license_info: Dict[str, Any] = None):
-        if license_key:
-            self._license_key = license_key
-        if device_id:
-            self._device_id = device_id
-        if tool_code:
-            self._tool_code = tool_code
+        if license_key: self._license_key = license_key
+        if device_id: self._device_id = device_id
+        if tool_code: self._tool_code = tool_code
         self._cached_tier = 'PREMIUM'
         return True
 
     def configure_from_cache(self) -> bool:
         return True
-
     def _get_device_id(self) -> Optional[str]:
         # [PyArmor BCC constants]: '_device_id', 'get_device_identity', 'debug', False, 'get', 'device_id', 'device_fingerprint', '_device_fingerprint', 'fingerprint', '_fingerprint_payload', 'Exception'
         pass
@@ -196,22 +191,21 @@ class LicenseManager:
 
     def verify_license(self, timeout: int = 15, progress_callback: Optional[Callable[[str, str, int], NoneType]] = None, runtime_pack_callback: Optional[Callable[[dict], NoneType]] = None) -> Tuple[bool, Dict[str, Any]]:
         payload = {
-            "tier": "PREMIUM",
-            "license_type": "PREMIUM",
-            "status": "active",
-            "features": ["all"],
-            "expires_at": "2099-12-31",
-            "remaining_count": 999999,
-            "quota": 999999,
+            'tier': 'PREMIUM',
+            'license_type': 'PREMIUM',
+            'status': 'active',
+            'features': ['all'],
+            'expires_at': '2099-12-31',
+            'remaining_count': 999999,
+            'quota': 999999,
         }
-        self._cached_tier = "PREMIUM"
+        self._cached_tier = 'PREMIUM'
         self._cached_quota = 999999
         self.feature_gate.update(payload)
         return True, payload
 
     def _verify_license_serialized(self, timeout: int = 15, progress_callback: Optional[Callable[[str, str, int], NoneType]] = None, runtime_pack_callback: Optional[Callable[[dict], NoneType]] = None) -> Tuple[bool, Dict[str, Any]]:
         return self.verify_license(timeout, progress_callback, runtime_pack_callback)
-
     @staticmethod
     def _cache_age_days(last_check) -> Optional[float]:
         # [PyArmor BCC constants]: 'str', '', 'strip', 'datetime', 'fromisoformat', 'replace', 'Z', '+00:00', 'tzinfo', 'max', 0.0, 'now', 'total_seconds', 86400.0, 'Exception'
@@ -233,11 +227,11 @@ class LicenseManager:
 
     @property
     def tier(self):
-        return "PREMIUM"
+        return 'PREMIUM'
 
     @property
     def license_key(self):
-        return self._license_key or "PREMIUM-LIFETIME-KEY"
+        return self._license_key or 'PREMIUM-LIFETIME-KEY'
 
     @property
     def license_info(self):
@@ -245,15 +239,14 @@ class LicenseManager:
 
     def get_license_info(self) -> dict:
         return {
-            "tier": "PREMIUM",
-            "license_type": "PREMIUM",
-            "status": "active",
-            "features": ["all"],
-            "expires_at": "2099-12-31",
-            "remaining_count": 999999,
-            "quota": 999999,
+            'tier': 'PREMIUM',
+            'license_type': 'PREMIUM',
+            'status': 'active',
+            'features': ['all'],
+            'expires_at': '2099-12-31',
+            'remaining_count': 999999,
+            'quota': 999999,
         }
-
     def refresh_credits(self) -> None:
         # [PyArmor BCC constants]: 'verify_license', 'timeout', 10, 'warning', '[license] refresh_credits failed: ', 'Exception'
         pass
@@ -299,15 +292,14 @@ class LicenseManager:
     @property
     def feature_gate(self):
         if not hasattr(self, '_feature_gate') or self._feature_gate is None:
-            self._feature_gate = FeatureGate({"tier": "PREMIUM", "features": ["all"], "expires_at": "2099-12-31"})
+            self._feature_gate = FeatureGate({'tier': 'PREMIUM', 'features': ['all'], 'expires_at': '2099-12-31'})
         return self._feature_gate
 
     def has_feature(self, code: str) -> bool:
         return True
 
     def check_feature_access(self, feature_code: str) -> Tuple[bool, str]:
-        return True, ""
-
+        return True, ''
     def checkout(self, timeout: int = 15) -> Tuple[bool, Dict[str, Any]]:
         # [PyArmor BCC constants]: '_ensure_client', False, 'error', 'Client not configured', '_client', 'client', '_make_request', 'checkout', 'timeout', 'get', 'success', True, 'data', 'message', 'Checkout failed'
         pass
