@@ -130,7 +130,57 @@ try:
 except Exception:
     pass
 
-# 7. Verify and configure patched license manager
+# 7. Mock requests to intercept any remote license / AI calls to veoflow.dev
+try:
+    import json
+    import requests
+    from unittest.mock import Mock
+
+    old_session_request = requests.Session.request
+
+    def fake_session_request(self, method, url, *args, **kwargs):
+        url_str = str(url).lower()
+        if "veoflow.dev" in url_str:
+            resp = Mock()
+            resp.status_code = 200
+            resp.ok = True
+            fake_payload = {
+                "success": True,
+                "status": "active",
+                "tier": "PREMIUM",
+                "license_type": "PREMIUM",
+                "is_demo": False,
+                "data": {
+                    "success": True,
+                    "tier": "PREMIUM",
+                    "license_type": "PREMIUM",
+                    "status": "active",
+                    "is_demo": False,
+                    "features": ["all"],
+                    "expires_at": "2099-12-31",
+                    "remaining_count": 999999,
+                    "quota": 999999,
+                    "auth": {
+                        "gateway_access_token": "fake_gateway_token_v4",
+                        "protocol_version": 4.0,
+                    },
+                },
+            }
+            resp.json = lambda: fake_payload
+            resp.text = json.dumps(fake_payload)
+            resp.content = resp.text.encode("utf-8")
+            resp.headers = {"Content-Type": "application/json"}
+            return resp
+        return old_session_request(self, method, url, *args, **kwargs)
+
+    requests.Session.request = fake_session_request
+    requests.request = lambda method, url, *a, **kw: fake_session_request(requests.Session(), method, url, *a, **kw)
+    requests.get = lambda url, *a, **kw: fake_session_request(requests.Session(), "GET", url, *a, **kw)
+    requests.post = lambda url, *a, **kw: fake_session_request(requests.Session(), "POST", url, *a, **kw)
+except Exception:
+    pass
+
+# 8. Verify and configure patched license manager
 from license.license_manager import get_license_manager
 lm = get_license_manager()
 lm.configure(license_key="PREMIUM-LIFETIME-KEY", device_id="PREMIUM-DEVICE-ID")

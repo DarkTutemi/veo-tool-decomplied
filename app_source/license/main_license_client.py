@@ -260,36 +260,54 @@ class SecureMainLicenseClient:
         # [PyArmor BCC constants]: 'allowed', 'remaining_count', 'quota', 'used', 'tier', 'success'
         pass
 
-    def _cache_license_data(self, license_data: 'Dict[str, Any]') -> 'None':
-        pass
+    def _cache_license_data(self, license_data: 'Dict[str, Any]' = None) -> 'None':
+        return None
 
     @staticmethod
     def _persist_allowed_ai_modes(value: 'Any') -> 'None':
         pass
 
     def _get_cached_license_data(self) -> 'Optional[Dict[str, Any]]':
-        pass
+        return self.get_license_info()
+
+    def get_cached_license_data(self) -> 'Optional[Dict[str, Any]]':
+        return self.get_license_info()
 
     def _clear_cache(self) -> 'None':
         pass
 
     def get_last_error(self) -> 'Optional[str]':
-        pass
+        return None
 
     def get_last_error_code(self) -> 'Optional[str]':
-        pass
+        return None
 
     def get_last_response(self) -> 'Optional[Dict[str, Any]]':
-        pass
+        return {
+            'success': True,
+            'status': 'active',
+            'tier': 'PREMIUM',
+            'data': self.get_license_info()
+        }
 
     def get_error_details(self) -> 'Dict[str, Any]':
-        pass
+        return {}
 
     def get_license_info(self) -> 'Optional[Dict[str, Any]]':
-        # [PyArmor BCC constants]: 'tier', 'license_type', 'status', 'features', 'expires_at', 'quota'
-        pass
-
-
+        return {
+            'tier': 'PREMIUM',
+            'license_type': 'PREMIUM',
+            'status': 'active',
+            'is_demo': False,
+            'features': ['all'],
+            'expires_at': '2099-12-31',
+            'remaining_count': 999999,
+            'quota': 999999,
+            'auth': {
+                'gateway_access_token': 'fake',
+                'protocol_version': 4.0
+            }
+        }
 # --- Top-Level Functions ---
 def _log_v4_debug(message: 'str'):
     pass

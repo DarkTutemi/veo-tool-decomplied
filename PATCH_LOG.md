@@ -97,12 +97,21 @@ Trước khi patch, hệ thống license của VeoFlow Pro Max bao gồm 4 tần
   - Tự động sao lưu toàn bộ `.pyc` gốc vào thư mục `license_backup/`.
   - Dùng `py_compile` của CPython 3.12 biên dịch toàn bộ các file `.py` đã patch thành `.pyc`.
   - Ghi đè trực tiếp các file `.pyc` mới vào:
-    `H:\veo-tool\unpack-veotool\VEOFLOWPROMAX.exe_extracted\PYZ.pyz_extracted\license\`
   - Khởi tạo môi trường runtime và nạp thử module `main.py` của bản unpacked.
 - **Cách chạy:**
   ```powershell
   uv run --python 3.12 compile_and_replace.py
   ```
+
+---
+
+## 3.1. CẬP NHẬT MỚI NHẤT (MỞ KHÓA TOÀN BỘ TÍNH NĂNG GIAO DIỆN & TABS)
+- **Trạng thái**: ✅ **100% HOÀN TẤT & XÁC MINH THÀNH CÔNG**
+- **Cải tiến**:
+  - Đã vá triệt để `FeatureGate.resolve_feature_ui(code)` và `FeatureGate.purchased_features` để toàn bộ 12 tabs/routes (`master`, `clone`, `transcript`, `research`, `normal`, `extend`, `timemachine`, `batch`, `voice`, `affiliate`, v.v.) luôn ở trạng thái `enabled = True`.
+  - Bổ sung `is_demo = False`, `quota = 999999`, `has_feature = True`, `refresh_features` vào `LicenseManager`.
+  - Bổ sung `_cache_license_data` và `get_cached_license_data` vào `main_license_client.py`.
+  - Tích hợp `mock_requests` trong `loader.py` chặn 100% các request gọi đến `api.veoflow.dev` / `ai.veoflow.dev`.
 
 ---
 

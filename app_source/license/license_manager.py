@@ -75,40 +75,56 @@ class FeatureGate:
 
     def require(self, code: str):
         return True
+
     def expires_at(self, code: 'str') -> 'Optional[str]':
-        pass
+        return '2099-12-31'
 
     def is_lifetime(self, code: 'str') -> 'bool':
-        pass
+        return True
 
     @property
     def purchased_features(self):
-        pass
+        return [
+            'all', 'master_prompt', 'affiliate', 'extend_panel', 'timemachine',
+            'voice_studio', 'clone_video', 'deep_research', 'image_story',
+            'transcript_video', 'audio_to_video', 'master_options', 'master_panel',
+            'clone_panel', 'transcript_panel', 'normal_panel', 'image_panel',
+            'affiliate_panel', 'time_machine', 'history'
+        ]
 
     @property
     def feature_details(self):
-        pass
+        return {code: {'status': 'active', 'tier': 'PREMIUM', 'is_demo': False} for code in self.purchased_features}
 
     def is_empty(self) -> 'bool':
-        pass
+        return False
 
-    def is_free(self, code: 'str') -> 'bool':
-        pass
+    def is_free(self, code: 'str' = None) -> 'bool':
+        return False
 
-    def is_maintenance(self, code: 'str') -> 'bool':
-        pass
+    def is_maintenance(self, code: 'str' = None) -> 'bool':
+        return False
 
-    def maintenance_message(self, code: 'str') -> 'str':
-        pass
+    def maintenance_message(self, code: 'str' = None) -> 'str':
+        return ''
 
-    def is_demo(self, code: 'str') -> 'bool':
-        pass
+    def is_demo(self, code: 'str' = None) -> 'bool':
+        return False
 
     def resolve_feature_ui(self, code: 'str') -> 'dict':
-        pass
-
-
-# --- Class: LicenseManager ---
+        return {
+            'enabled': True,
+            'badge': '',
+            'message': '',
+            'status': 'active',
+            'runtime_pack_readiness': 'ready',
+            'feature_active': True,
+            'feature_code': code,
+            'tier': 'PREMIUM',
+            'is_demo': False,
+            'accessible': True,
+            'locked': False
+        }
 class LicenseManager:
     """
     🔐 Single Source of Truth for License Management
@@ -202,6 +218,18 @@ class LicenseManager:
         return 'PREMIUM'
 
     @property
+    def is_demo(self):
+        return False
+
+    @property
+    def quota(self):
+        return 999999
+
+    @property
+    def remaining_count(self):
+        return 999999
+
+    @property
     def license_key(self):
         return self._license_key or 'PREMIUM-LIFETIME-KEY'
 
@@ -214,17 +242,35 @@ class LicenseManager:
             'tier': 'PREMIUM',
             'license_type': 'PREMIUM',
             'status': 'active',
+            'is_demo': False,
             'features': ['all'],
             'expires_at': '2099-12-31',
             'remaining_count': 999999,
             'quota': 999999,
+            'daily_quota': 999999,
+            'unlimited': True,
         }
-    def refresh_credits(self) -> 'None':
+
+    def is_demo_mode(self) -> bool:
+        return False
+
+    def has_feature(self, code: str) -> bool:
+        return True
+
+    def check_feature_access(self, feature_code: str) -> Tuple[bool, str]:
+        return True, ''
+
+    def refresh_credits(self) -> None:
         pass
 
-    def refresh_features(self, timeout: 'int' = 12) -> 'Tuple[bool, Dict[str, Any]]':
-        pass
+    def refresh_features(self, timeout: int = 12) -> Tuple[bool, Dict[str, Any]]:
+        return True, self.get_license_info()
 
+    def load_from_cache(self) -> Optional[Dict[str, Any]]:
+        return self.get_license_info()
+
+    def _load_cached_license(self) -> Optional[Dict[str, Any]]:
+        return self.get_license_info()
     def _get_main_api_client(self):
         pass
 
@@ -330,6 +376,10 @@ def _vlog(message: 'str') -> 'None':
 
 def _resolve_offline_grace_days() -> 'int':
     pass
+
+_license_manager = None
+
+_license_manager = None
 
 _license_manager = None
 
