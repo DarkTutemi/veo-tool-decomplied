@@ -1,0 +1,5 @@
+CoordinationFilterComboBox 1.0 CoordinationFilterComboBox.qml
+CoordinationTimeline 1.0 CoordinationTimeline.qml
+CoordinationQueue 1.0 CoordinationQueue.qml
+OperationInspector 1.0 OperationInspector.qml
+ChannelHealthStrip 1.0 ChannelHealthStrip.qml

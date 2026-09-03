@@ -1,0 +1,8 @@
+module VeoFlowContent
+ContentComboBox 1.0 ContentComboBox.qml
+ContentDialog 1.0 ContentDialog.qml
+ContentHeader 1.0 ContentHeader.qml
+ContentInventory 1.0 ContentInventory.qml
+ContentInspector 1.0 ContentInspector.qml
+ContentTextField 1.0 ContentTextField.qml
+ReuseStrip 1.0 ReuseStrip.qml

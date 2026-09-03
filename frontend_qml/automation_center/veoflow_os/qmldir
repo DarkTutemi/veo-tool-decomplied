@@ -1,0 +1,31 @@
+Main 1.0 Main.qml
+singleton Theme 1.0 Theme.qml
+singleton CenterTokens 1.0 CenterTokens.qml
+TodayPage 1.0 pages/TodayPage.qml
+DistributionPage 1.0 pages/DistributionPage.qml
+ChannelsDevicesPage 1.0 pages/ChannelsDevicesPage.qml
+StudioPage 1.0 pages/StudioPage.qml
+CoordinationPage 1.0 pages/CoordinationPage.qml
+ChannelsPage 1.0 pages/ChannelsPage.qml
+ContentPage 1.0 pages/ContentPage.qml
+SchedulePage 1.0 pages/SchedulePage.qml
+AutomationPage 1.0 pages/AutomationPage.qml
+AlertsPage 1.0 pages/AlertsPage.qml
+ReportsPage 1.0 pages/ReportsPage.qml
+SettingsPage 1.0 pages/SettingsPage.qml
+PhoneFarmPage 1.0 pages/PhoneFarmPage.qml
+PlaceholderPage 1.0 pages/PlaceholderPage.qml
+AppButton 1.0 components/AppButton.qml
+WorkspaceSectionTabs 1.0 components/WorkspaceSectionTabs.qml
+AppComboBox 1.0 components/AppComboBox.qml
+AppCheckBox 1.0 components/AppCheckBox.qml
+Panel 1.0 components/Panel.qml
+SettingField 1.0 components/SettingField.qml
+SocialIcon 1.0 components/SocialIcon.qml
+PlatformIcon 1.0 components/PlatformIcon.qml
+NavIcon 1.0 components/NavIcon.qml
+UiIcon 1.0 components/UiIcon.qml
+CenterPanel 1.0 components/CenterPanel.qml
+CenterStatusBadge 1.0 components/CenterStatusBadge.qml
+CenterSearchField 1.0 components/CenterSearchField.qml
+CenterNavButton 1.0 components/CenterNavButton.qml

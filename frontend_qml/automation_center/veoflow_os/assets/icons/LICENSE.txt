@@ -1,0 +1,38 @@
+VeoFlow icon catalog
+====================
+
+The VeoFlow brand mark in brand/veoflow-mark.svg is proprietary artwork:
+Copyright (c) 2026 VeoFlow. All rights reserved.
+
+The multicolor product/chrome.svg is a locally reconstructed Google Chrome
+product identifier used only to identify the selected browser runtime in the
+operator UI. It is not distributed as Lucide artwork. Google Chrome and its
+product mark are trademarks of Google LLC; inclusion is nominative and does
+not imply endorsement. Product and platform names remain trademarks of their
+respective owners.
+
+All remaining non-VeoFlow SVG files in this directory are locally vendored,
+Lucide-compatible outline icons distributed under the ISC License:
+
+ISC License
+
+Copyright (c) 2020-present Lucide Contributors
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+
+The platform identifiers in product/tiktok.svg, product/youtube.svg,
+product/facebook.svg, product/instagram.svg, and product/x.svg are vendored
+from Simple Icons v16 (https://github.com/simple-icons/simple-icons), whose
+icon data is dedicated to the public domain under CC0 1.0. Platform names and
+marks remain trademarks of their respective owners; inclusion is nominative
+and does not imply endorsement.

@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "VeoFlow Panel",
+  "version": "0.1.0",
+  "description": "VeoFlow affiliate control panel (side panel).",
+
+  "//key": "Public key nhúng để extension ID CỐ ĐỊNH = egkckajbblpbokfobjaligicalflbhla. App dùng ID này cho Origin-allowlist của WS. Sinh từ scratchpad/panel_ext_key.txt.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtr+e1IhifXCIr4VlAd5MXK6EcPZ4x/M/eHrLBV6kexPmjLLUcmtY1ysWTYz3h/bi7xuwMljM81RmrO3QWFwyi/c3wvEN2mT7KHVM2ceYW2LPbzaZ6pfwX2K0TGY6+sHyl+IMcduqpbOzEIAGUC7/E0QE4SIqqACCt4+89KE9SM9wURkVqFZO4UIf35Blv/xBKobLKRH/mEFlx/k/CB9MShvhAPcTfYEoQjBXvgk+0tJi+V5LiV4H06d73dwnd21Spiw9sOG58yB/Q3pk7Lkb0obay8z6UATs7e51iCz4d4KNDe4BBgHqP2AfvXtjYsMjX83+yuQkP8NoRZV5rtHY5wIDAQAB",
+
+  "permissions": ["sidePanel", "tabs"],
+
+  "side_panel": {
+    "default_path": "side_panel.html"
+  },
+
+  "content_scripts": [
+    {
+      "//": "Phần DUY NHẤT chạm trang — isolated world, READ-ONLY (P0 chỉ báo có mặt). Không chèn node cố định (chống trang phát hiện).",
+      "matches": [
+        "https://*.tiktok.com/*",
+        "https://*.shopee.vn/*",
+        "https://*.shopee.com/*"
+      ],
+      "js": ["content_script.js"],
+      "run_at": "document_idle",
+      "world": "ISOLATED"
+    }
+  ]
+
+  ,"//stealth": "CỐ Ý KHÔNG khai web_accessible_resources (trang không probe được chrome-extension://<id>/...) và KHÔNG externally_connectable (trang không sendMessage tới ext). Đừng thêm 2 field này."
+}

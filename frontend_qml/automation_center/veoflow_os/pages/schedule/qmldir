@@ -1,0 +1,12 @@
+ScheduleHeader 1.0 ScheduleHeader.qml
+ScheduleBacklog 1.0 ScheduleBacklog.qml
+PublishingCalendar 1.0 PublishingCalendar.qml
+ScheduleInspector 1.0 ScheduleInspector.qml
+PublishingCapacityStrip 1.0 PublishingCapacityStrip.qml
+ScheduleCapacityDialog 1.0 ScheduleCapacityDialog.qml
+ScheduleRecurrencePanel 1.0 ScheduleRecurrencePanel.qml
+ScheduleField 1.0 ScheduleField.qml
+ScheduleCombo 1.0 ScheduleCombo.qml
+ScheduleSpin 1.0 ScheduleSpin.qml
+ScheduleWeekdayPicker 1.0 ScheduleWeekdayPicker.qml
+ScheduleDialog 1.0 ScheduleDialog.qml

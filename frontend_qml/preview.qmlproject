@@ -1,0 +1,25 @@
+import QmlProject
+
+Project {
+    mainFile: "Preview/Preview/Main.qml"
+
+    QmlFiles {
+        directory: "."
+    }
+
+    JavaScriptFiles {
+        directory: "."
+    }
+
+    ImageFiles {
+        directory: "."
+    }
+
+    Files {
+        filter: "qmldir"
+        directory: "."
+    }
+
+    qt6Project: true
+    importPaths: [ "." ]
+}

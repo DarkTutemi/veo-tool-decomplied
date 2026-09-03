@@ -1,0 +1,9 @@
+SettingsNavigation 1.0 SettingsNavigation.qml
+TypedSettingEditor 1.0 TypedSettingEditor.qml
+ResourceTable 1.0 ResourceTable.qml
+RuntimePathsPanel 1.0 RuntimePathsPanel.qml
+SystemHealthPanel 1.0 SystemHealthPanel.qml
+ApplicationUpdatePanel 1.0 ApplicationUpdatePanel.qml
+ChangeHistoryPanel 1.0 ChangeHistoryPanel.qml
+LicenseCenterPanel 1.0 LicenseCenterPanel.qml
+AIProviderHealthPanel 1.0 AIProviderHealthPanel.qml

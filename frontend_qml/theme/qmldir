@@ -1,0 +1,3 @@
+singleton VfTheme 1.0 VfTheme.qml
+singleton VfDialogMetrics 1.0 VfDialogMetrics.qml
+singleton TourState 1.0 TourState.qml

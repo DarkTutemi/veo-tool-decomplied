@@ -1,0 +1,10 @@
+singleton StatusCatalog 1.0 StatusCatalog.qml
+DeviceAvatar 1.0 DeviceAvatar.qml
+BatteryIndicator 1.0 BatteryIndicator.qml
+SignalIndicator 1.0 SignalIndicator.qml
+CodecBadge 1.0 CodecBadge.qml
+StatusBadge 1.0 StatusBadge.qml
+MetricStatusRow 1.0 MetricStatusRow.qml
+LeaseBanner 1.0 LeaseBanner.qml
+EvidenceStrip 1.0 EvidenceStrip.qml
+DeviceStatusKitGallery 1.0 DeviceStatusKitGallery.qml

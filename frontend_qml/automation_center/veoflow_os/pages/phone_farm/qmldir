@@ -1,0 +1,10 @@
+PhoneFarmHeader 1.0 PhoneFarmHeader.qml
+DeviceInventory 1.0 DeviceInventory.qml
+DeviceCastGrid 1.0 DeviceCastGrid.qml
+DeviceInspector 1.0 DeviceInspector.qml
+TikTokQuickPanel 1.0 TikTokQuickPanel.qml
+DeviceOperationTable 1.0 DeviceOperationTable.qml
+DeviceAttentionPanel 1.0 DeviceAttentionPanel.qml
+DeviceEnrollmentWizard 1.0 DeviceEnrollmentWizard.qml
+DeviceBatchForm 1.0 DeviceBatchForm.qml
+PhoneFarmToggle 1.0 PhoneFarmToggle.qml

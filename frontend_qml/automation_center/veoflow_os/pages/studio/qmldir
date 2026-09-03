@@ -1,0 +1,8 @@
+StudioHeader 1.0 StudioHeader.qml
+StudioInputPane 1.0 StudioInputPane.qml
+StudioPreviewPane 1.0 StudioPreviewPane.qml
+RecipeEditor 1.0 RecipeEditor.qml
+QcInspector 1.0 QcInspector.qml
+StudioProcessRail 1.0 StudioProcessRail.qml
+StudioButton 1.0 StudioButton.qml
+StudioComboBox 1.0 StudioComboBox.qml

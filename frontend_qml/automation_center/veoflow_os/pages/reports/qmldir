@@ -1,0 +1,14 @@
+ReportsHeader 1.0 ReportsHeader.qml
+KpiStrip 1.0 KpiStrip.qml
+TrendPanel 1.0 TrendPanel.qml
+PerformanceTable 1.0 PerformanceTable.qml
+InsightPanel 1.0 InsightPanel.qml
+ChannelComparison 1.0 ChannelComparison.qml
+FunnelPanel 1.0 FunnelPanel.qml
+AttributionPanel 1.0 AttributionPanel.qml
+CostPanel 1.0 CostPanel.qml
+ExportDialog 1.0 ExportDialog.qml
+ReportDialog 1.0 ReportDialog.qml
+ReportTextField 1.0 ReportTextField.qml
+ReportComboBox 1.0 ReportComboBox.qml
+ReportSwitch 1.0 ReportSwitch.qml

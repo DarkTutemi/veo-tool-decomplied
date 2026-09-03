@@ -1,0 +1,99 @@
+<!doctype html>
+<!-- DEV-ONLY preview: stub window.__vf + chrome, đẩy state mock để soi UI nhanh (không fork/WS).
+     ?p=tiktok|shopee ép sàn (mock host). KHÔNG được manifest load. Serve qua http.server. -->
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="app.css">
+  <style>html,body{margin:0;height:100%;background:#090b10;overflow:hidden}</style>
+</head>
+<body>
+  <div id="vf-app"></div>
+  <script>
+    const P = new URLSearchParams(location.search).get("p") || "tiktok";
+    const HOST = P === "shopee" ? "affiliate.shopee.vn" : "shop.tiktok.com";
+    const MOCK_OFFERS = Array.from({ length: 36 }, (_, i) => ({
+      offer_item_id: String(28000000000 + i),
+      name: ["Quạt tích điện pin 20 cell", "Đèn năng lượng mặt trời", "Ghế chống gù cao cấp"][i % 3] + " · mẫu " + (i + 1),
+      price: (159 + i * 17) * 1000, price_text: "₫" + (159 + i * 17) + ".000",
+      sold: (i + 1) * 3 + "k+ sold", sold_count: (i + 1) * 3000,
+      commission_rate: 8 + (i * 7) % 33, commission: "Comm Rate " + (8 + (i * 7) % 33) + "%",
+      rating: 4.2 + (i % 8) / 10, shop_id: String(9000 + (i % 9)),
+      shop_name: "Shopee Mall " + (i % 9 + 1), category_id: String(100 + (i % 5)),
+      image: "", offer_url: "https://" + HOST + "/offer/product_offer/" + (28000000000 + i),
+    }));
+    const MOCK_TIKTOK = Array.from({ length: 18 }, (_, i) => ({
+      tiktok_product_id: String(1731427000000000000n + BigInt(i)),
+      name: ["Loa bass 20cm", "Dây loa lõi đồng", "Giường gấp gọn", "Tai nghe gaming"][i % 4] + " · mẫu " + (i + 1),
+      price: ((129 + i * 37) * 1000).toLocaleString("vi-VN") + "₫",
+      brand: "TikTok Shop " + (i % 5 + 1), image_urls: [""],
+      commission_rate: 2 + (i * 3) % 24, commission_amount: 4200 + i * 3150,
+      stock: i % 7 === 0 ? 0 : 18 + i * 71, stock_status: i % 7 === 0 ? 0 : 1,
+      is_hide: i % 8 === 0, review_status: 1, source_from: 2,
+      source: "tiktok_showcase",
+    }));
+    window.chrome = { tabs: { query: async () => [{ id: 1 }], sendMessage: async () => ({ ok: false }) } };
+    // __vfExtract trả host + mock Product Offer để soi cả workflow lọc/xếp hạng.
+    window.__vfExtract = async () => P === "shopee" ? ({
+      kind: "shopee_offer_list", url: "https://" + HOST + "/offer/product_offer",
+      host: HOST, title: "mock", list_api_url: "https://" + HOST + "/api/v3/offer/product/list?mock=1",
+      products: MOCK_OFFERS.slice(0, 14),
+    }) : ({ url: "https://" + HOST + "/x", host: HOST, title: "mock" });
+    const H = {};
+    window.__vf = {
+      send(type) {
+        if (type === "OVERLAY_READY") {
+          fire("CONNECTION", { connected: true, auth: true, account_name: "Shop Bố Độ" });
+          fire("CHANNELS", { current: { key: "affiliate", label: "Kênh chính" } });
+          fire("SHOPEE_OFFER_POLICY", {
+            known_item_ids: ["28000000001", "28000000003"],
+            done_item_ids: ["28000000003"],
+          });
+          if (P === "shopee") {
+            setTimeout(() => fire("LINKS_RESULT", { links: [
+              { name: "Áo hoodie unisex form rộng nỉ bông", short: "https://s.shopee.vn/8f2kQ" },
+              { name: "Giày sneaker chunky đế cao", short: "https://s.shopee.vn/3aPm1" },
+              { name: "Balo laptop chống sốc 15.6 inch", short: "chưa tạo" },
+            ] }), 250);
+          } else fire("TIKTOK_SHOWCASE_POLICY", {
+            known_item_ids: [MOCK_TIKTOK[1].tiktok_product_id, MOCK_TIKTOK[4].tiktok_product_id],
+            done_item_ids: [MOCK_TIKTOK[4].tiktok_product_id],
+          });
+        }
+        if (type === "TIKTOK_CATALOG_FETCH") {
+          fire("TIKTOK_CATALOG_PROGRESS", { running: true, message: "Đang đồng bộ mock showcase…" });
+          setTimeout(() => {
+            fire("TIKTOK_CATALOG_DATA", {
+              products: MOCK_TIKTOK, count: MOCK_TIKTOK.length, total_count: MOCK_TIKTOK.length,
+              policy: {
+                known_item_ids: [MOCK_TIKTOK[1].tiktok_product_id, MOCK_TIKTOK[4].tiktok_product_id],
+                done_item_ids: [MOCK_TIKTOK[4].tiktok_product_id],
+              },
+            });
+            fire("TIKTOK_CATALOG_PROGRESS", { running: false, message: "Đã đồng bộ mock showcase" });
+          }, 250);
+        }
+        if (type === "TIKTOK_SHOWCASE_ACTION") {
+          fire("TIKTOK_ACTION_PROGRESS", { running: true, action: "hide", count: 1 });
+          setTimeout(() => fire("TIKTOK_ACTION_DONE", { ok: true, message: "Mock: đã cập nhật showcase" }), 350);
+        }
+        if (type === "SHOPEE_CATALOG_FETCH") {
+          fire("SHOPEE_CATALOG_PROGRESS", { running: true, message: "Đang tải mock catalog…" });
+          setTimeout(() => {
+            fire("SHOPEE_CATALOG_DATA", {
+              products: MOCK_OFFERS, count: MOCK_OFFERS.length, total_count: 500,
+              source_url: "https://" + HOST + "/api/v3/offer/product/list?mock=1",
+              policy: { known_item_ids: ["28000000001", "28000000003"], done_item_ids: ["28000000003"] },
+            });
+            fire("SHOPEE_CATALOG_PROGRESS", { running: false, message: "Đã tải mock catalog" });
+          }, 300);
+        }
+      },
+      on(type, fn) { (H[type] = H[type] || []).push(fn); },
+      recv() {},
+    };
+    function fire(type, payload) { (H[type] || []).forEach(fn => { try { fn(payload); } catch (e) {} }); }
+  </script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

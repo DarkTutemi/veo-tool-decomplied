@@ -1,0 +1,366 @@
+{
+  "schema_version": 1,
+  "dataset_id": "veoflow-showcase-v1",
+  "kind": "demo_visual_assets",
+  "provenance": "openai_imagegen",
+  "usage": "VeoFlow OS isolated demo mode only",
+  "assets": [
+    {
+      "key": "garden-creator",
+      "path": "phone_farm/garden-creator.jpg",
+      "sha256": "67b6ab09aafbee80cc03c6367cc7d6e50d6294c7b397c6a25e9093c78f6ec84d",
+      "bytes": 90107,
+      "content": "fictional Vietnamese travel creator in a garden"
+    },
+    {
+      "key": "mountain-route",
+      "path": "phone_farm/mountain-route.jpg",
+      "sha256": "2c300fa7c777d7e634846e26233013f36ca7e213f3122421994b50e68f65fb35",
+      "bytes": 126752,
+      "content": "fictional vertical travel frame of a mountain road"
+    },
+    {
+      "key": "creator-products",
+      "path": "phone_farm/creator-products.jpg",
+      "sha256": "934506e57d659d51135535b64376a5abd70f82d0da0cd67c2b8460c9d5c1b873",
+      "bytes": 67902,
+      "content": "fictional creator product flat lay"
+    },
+    {
+      "key": "waterfall-travel",
+      "path": "phone_farm/waterfall-travel.jpg",
+      "sha256": "849f285d1809372ad5d01d42017d8fa94eb26ca4be11e5e0add337299be526cc",
+      "bytes": 113958,
+      "content": "fictional vertical waterfall travel frame"
+    },
+    {
+      "key": "phone-evidence-r1-c1",
+      "path": "phone_farm/evidence/evidence-r1-c1.png",
+      "sha256": "97e8d19bfff9cc5b0fa60b8a367a07526aad1f087cf616a4bca2b3f1f04d7108",
+      "bytes": 26468,
+      "content": "fictional pastel garden evidence thumbnail, set 1 frame 1"
+    },
+    {
+      "key": "phone-evidence-r1-c2",
+      "path": "phone_farm/evidence/evidence-r1-c2.png",
+      "sha256": "bb06724907c17cdb9d4762df4746252aa3a6dd970d95058c6bd13a8f7e242b0a",
+      "bytes": 25812,
+      "content": "fictional pastel garden evidence thumbnail, set 1 frame 2"
+    },
+    {
+      "key": "phone-evidence-r1-c3",
+      "path": "phone_farm/evidence/evidence-r1-c3.png",
+      "sha256": "a2e9182a1b878cfd4cfca1236976c6f5a1874c3ce30c958deef4ac9c5b5baf34",
+      "bytes": 26296,
+      "content": "fictional pastel garden evidence thumbnail, set 1 frame 3"
+    },
+    {
+      "key": "phone-evidence-r2-c1",
+      "path": "phone_farm/evidence/evidence-r2-c1.png",
+      "sha256": "5dc6bf1646d3cef0ab7ba5459cccf0e7a03859c365b588800dcc7e437f961aaf",
+      "bytes": 25741,
+      "content": "fictional amber evidence thumbnail, set 2 frame 1"
+    },
+    {
+      "key": "phone-evidence-r2-c2",
+      "path": "phone_farm/evidence/evidence-r2-c2.png",
+      "sha256": "8afb4f1fd2ce46a01f12d4057f6b88e5029deb96427b7fe9f0fc683350cbfb5a",
+      "bytes": 25480,
+      "content": "fictional amber evidence thumbnail, set 2 frame 2"
+    },
+    {
+      "key": "phone-evidence-r2-c3",
+      "path": "phone_farm/evidence/evidence-r2-c3.png",
+      "sha256": "b0d02581ddffdb77001d4de1951ea73c7510d06fd31bdb7207139ff727e4fe76",
+      "bytes": 25787,
+      "content": "fictional amber evidence thumbnail, set 2 frame 3"
+    },
+    {
+      "key": "phone-evidence-r3-c1",
+      "path": "phone_farm/evidence/evidence-r3-c1.png",
+      "sha256": "dc46ec80b9dd72b97b94a92de066bc9dc5d9ab3494df1a739097b6cbad590de7",
+      "bytes": 22975,
+      "content": "fictional portrait and garden evidence thumbnail, set 3 frame 1"
+    },
+    {
+      "key": "phone-evidence-r3-c2",
+      "path": "phone_farm/evidence/evidence-r3-c2.png",
+      "sha256": "7ea48542845ebb2cd1b83a8e7e10821f37f36d5cf2b4edb1f163d8e6edc82c91",
+      "bytes": 26694,
+      "content": "fictional portrait and garden evidence thumbnail, set 3 frame 2"
+    },
+    {
+      "key": "phone-evidence-r3-c3",
+      "path": "phone_farm/evidence/evidence-r3-c3.png",
+      "sha256": "b4c507fdcf977ad27880b330426776782143e83d9e25d71ec0f1c0ed0b12469f",
+      "bytes": 26738,
+      "content": "fictional portrait and garden evidence thumbnail, set 3 frame 3"
+    },
+    {
+      "key": "phone-evidence-r4-c1",
+      "path": "phone_farm/evidence/evidence-r4-c1.png",
+      "sha256": "51fa51891e4cf57b7f48b46684bd78c3e850cf323dbef16f4e49fcd23c45c2e8",
+      "bytes": 24237,
+      "content": "fictional olive outdoor evidence thumbnail, set 4 frame 1"
+    },
+    {
+      "key": "phone-evidence-r4-c2",
+      "path": "phone_farm/evidence/evidence-r4-c2.png",
+      "sha256": "afa32996dda924f96dee1f0ade056277dcc0fd7b5e67bc76c8f45364f41c5eeb",
+      "bytes": 25623,
+      "content": "fictional olive outdoor evidence thumbnail, set 4 frame 2"
+    },
+    {
+      "key": "phone-evidence-r4-c3",
+      "path": "phone_farm/evidence/evidence-r4-c3.png",
+      "sha256": "1f2ab736f7ceb57b5f9ff5a4026a3b5b6a04d95db67ff1d92867bf5ef255fc83",
+      "bytes": 25723,
+      "content": "fictional olive outdoor evidence thumbnail, set 4 frame 3"
+    },
+    {
+      "key": "phone-evidence-sprite-v1",
+      "path": "phone_farm/evidence/evidence-sprite-v1.png",
+      "sha256": "bfadb2b7bcf12f3ed3f4d22a1347edfa013e415ed239ddc228aa894a198276f8",
+      "bytes": 2879087,
+      "content": "ImageGen source sheet for the fictional Phone Farm evidence thumbnail sets"
+    },
+    {
+      "key": "quick-meal",
+      "path": "content/quick-meal.jpg",
+      "sha256": "c6a6b8671990d6952f34e10168b8ad96cc93368eea9916f7b1aa65ac1eacbaef",
+      "bytes": 97988,
+      "content": "fictional Vietnamese quick meal video poster"
+    },
+    {
+      "key": "organized-home",
+      "path": "content/organized-home.jpg",
+      "sha256": "f04220d64ea6f2be31ed51032f8cf80215d1301ab7ba9859cdf19e844411e125",
+      "bytes": 68274,
+      "content": "fictional organized home video poster"
+    },
+    {
+      "key": "air-purifier",
+      "path": "content/air-purifier.jpg",
+      "sha256": "583858768db2b8bf78bf8c4500301ee67db5ef2f67e609e9e8c717e5bbcf48e7",
+      "bytes": 89069,
+      "content": "fictional air purifier review video poster"
+    },
+    {
+      "key": "healthy-salad",
+      "path": "content/healthy-salad.jpg",
+      "sha256": "886adbf0c407b670863e9c65317093b0a90eeea6e0780d3f9082cdfb54148ff7",
+      "bytes": 151988,
+      "content": "fictional healthy salad video poster"
+    },
+    {
+      "key": "creator-workspace",
+      "path": "content/creator-workspace.jpg",
+      "sha256": "bee41703a3bb7e7c9526686d0be60c0d013a0fdfa943bd9fc302122d0d444369",
+      "bytes": 69844,
+      "content": "fictional creator workspace video poster"
+    },
+    {
+      "key": "vietnam-travel",
+      "path": "content/vietnam-travel.jpg",
+      "sha256": "eb83fe6a1d28583eb29dfb20d6ac3c39c054d5f22d8608ec12f1248a9446a45d",
+      "bytes": 106675,
+      "content": "fictional Vietnam travel video poster"
+    },
+    {
+      "key": "quick-meal-demo-video",
+      "path": "media/quick-meal-demo.mp4",
+      "sha256": "d58109884e8a5d4daaaf4b1e79443024ef837b7b765ae4f2f43bccde47b99d44",
+      "bytes": 207125,
+      "content": "four-second H.264 demo video generated from quick-meal"
+    },
+    {
+      "key": "quick-meal-demo-subtitles",
+      "path": "media/quick-meal-demo.srt",
+      "sha256": "71c27d1451e0422948a4301252a6fb26b3871bdabc58bb6c707c5cdc04fabec5",
+      "bytes": 160,
+      "content": "Vietnamese subtitles for quick-meal demo video"
+    },
+    {
+      "key": "vietnam-travel-demo-video",
+      "path": "media/vietnam-travel-demo.mp4",
+      "sha256": "a99506264d5f02dee6eb6e1509ea95db60358137f21f6555dc4c51ced48fc49b",
+      "bytes": 227714,
+      "content": "four-second H.264 demo video generated from vietnam-travel"
+    },
+    {
+      "key": "vietnam-travel-demo-subtitles",
+      "path": "media/vietnam-travel-demo.srt",
+      "sha256": "73d230ed5309834b5ee5ee82812b33c71ecd2a5d98beb824d152e7caf9e2fc01",
+      "bytes": 144,
+      "content": "Vietnamese subtitles for vietnam-travel demo video"
+    },
+    {
+      "key": "studio-smoothie-green",
+      "path": "studio/smoothie-green.jpg",
+      "sha256": "a093b8e03d17a668626ae95c02b39cd3adb1ea89ffd815f67be30ac4a377c247",
+      "bytes": 92258,
+      "content": "fictional vertical green smoothie source poster for Studio demo"
+    },
+    {
+      "key": "studio-air-fryer-meal",
+      "path": "studio/air-fryer-meal.jpg",
+      "sha256": "c3c4a757de7d56061aeb65d1652a018060960d319e190fbeff832a7d504cc634",
+      "bytes": 80384,
+      "content": "fictional vertical air fryer meal source poster for Studio demo"
+    },
+    {
+      "key": "studio-kitchen-tools",
+      "path": "studio/kitchen-tools.jpg",
+      "sha256": "964ace73e0753a2b78e9ce71339717f22e5dcdc9e3b303bcdb2f9c8ab1ec4883",
+      "bytes": 94727,
+      "content": "fictional vertical kitchen tools source poster for Studio demo"
+    },
+    {
+      "key": "studio-stir-fried-noodles",
+      "path": "studio/stir-fried-noodles.jpg",
+      "sha256": "3ecaca5881ca1a28a4b65bb322a4ce7dbb04ce908ce5ca63588dfc2a4384d0fb",
+      "bytes": 109217,
+      "content": "fictional vertical stir-fried noodles flagship poster for Studio demo"
+    },
+    {
+      "key": "studio-bep-logo",
+      "path": "studio/bep-nha-minh-logo.png",
+      "sha256": "f22d0cbf74d297fc94026d3b3d6732fee37c17483e20f78228e2605d365309ec",
+      "bytes": 15123,
+      "content": "rasterized fictional channel chef badge for Studio preview composition",
+      "provenance": "veoflow_demo_vector_raster"
+    },
+    {
+      "key": "studio-stir-fried-noodles-video",
+      "path": "studio/stir-fried-noodles.mp4",
+      "sha256": "6e2141eac8c9913ff95270de84a7ecd3fda1e2008e329e4f62fedcb246ad931b",
+      "bytes": 930412,
+      "content": "72-second 1080x1920 H.264 AAC demo video generated from the Studio noodles poster"
+    },
+    {
+      "key": "studio-stir-fried-noodles-subtitles",
+      "path": "studio/stir-fried-noodles.srt",
+      "sha256": "ec3d15ed295eade3dc3744ff7c9ec27f7c26911f846aa467a4a6ea216d914b56",
+      "bytes": 252,
+      "content": "Vietnamese subtitles for the Studio noodles demo video"
+    },
+    {
+      "key": "studio-smoothie-green-video",
+      "path": "studio/smoothie-green.mp4",
+      "sha256": "e2dc042946a07aa0ca99781e9c5eeebfab02103ccfb5b07803be6cc860f32a55",
+      "bytes": 652189,
+      "content": "58-second 1080x1920 H.264 AAC demo video generated from the Studio smoothie poster"
+    },
+    {
+      "key": "studio-air-fryer-meal-video",
+      "path": "studio/air-fryer-meal.mp4",
+      "sha256": "4af871e77aadd014b528a90579233c6fb4653a55d2daa5ecfa4c76a8f17c2b1b",
+      "bytes": 689706,
+      "content": "65-second 1080x1920 H.264 AAC demo video generated from the Studio air fryer poster"
+    },
+    {
+      "key": "studio-healthy-salad-video",
+      "path": "studio/healthy-salad.mp4",
+      "sha256": "caaee9517d31a962b222fe403e0a01f9e1792d91e93d3dcd5115855d76cd4d38",
+      "bytes": 748219,
+      "content": "47-second 1080x1920 H.264 AAC demo video generated from the healthy salad poster"
+    },
+    {
+      "key": "studio-kitchen-tools-video",
+      "path": "studio/kitchen-tools.mp4",
+      "sha256": "08c1e90033989d18800bd6dfcf204bea10ea6dc1d101bb35cebb5a88139bf39e",
+      "bytes": 1000986,
+      "content": "90-second 1080x1920 H.264 AAC demo video generated from the Studio kitchen tools poster"
+    },
+    {
+      "key": "content-reuse-intro-minimal-desk",
+      "path": "content/reuse/intro-minimal-desk-10s.mp4",
+      "sha256": "83f84ddc7c236377ff8cb2f2fa50cc835184a2cdfe61d085ae82c268e727d26a",
+      "bytes": 50010,
+      "content": "10-second 360x640 H.264 AAC moving desk intro generated with zoompan",
+      "provenance": "ffmpeg_zoompan_h264_aac_v1 from fictional creator-workspace demo artwork",
+      "license": "VeoFlow-Proprietary-Demo"
+    },
+    {
+      "key": "content-reuse-text-pop-motion",
+      "path": "content/reuse/text-pop-motion-8s.mp4",
+      "sha256": "53623bfa52235713aef5749e51edc24a96ebe912db5d7cc143e10f153056d573",
+      "bytes": 88019,
+      "content": "8-second 360x640 H.264 AAC text-pop motion generated with zoompan and drawtext",
+      "provenance": "ffmpeg_zoompan_drawtext_h264_aac_v1 from fictional air-purifier demo artwork",
+      "license": "VeoFlow-Proprietary-Demo"
+    },
+    {
+      "key": "content-reuse-whoosh-transition",
+      "path": "content/reuse/whoosh-transition-7s.mp4",
+      "sha256": "912b1f7e18350a353da96681eaa975ba315fd51a43623d19a47a64dd0fb03b53",
+      "bytes": 44878,
+      "content": "7-second 360x640 H.264 AAC wipe-left transition between two fictional demo artworks",
+      "provenance": "ffmpeg_xfade_wipeleft_h264_aac_v1",
+      "license": "VeoFlow-Proprietary-Demo"
+    },
+    {
+      "key": "content-reuse-clock-tick-sound",
+      "path": "content/reuse/clock-tick-sound-6s.wav",
+      "sha256": "cabfb66a7bf1d9ca0486bbee8f636871066b29ae417426352033ea37ce57bc69",
+      "bytes": 576078,
+      "content": "6-second 48 kHz PCM tick sound synthesized as decaying pulses",
+      "provenance": "ffmpeg_aevalsrc_tick_pcm_s16le_v1",
+      "license": "VeoFlow-Proprietary-Demo"
+    },
+    {
+      "key": "content-reuse-cta-subscribe-button",
+      "path": "content/reuse/cta-subscribe-button-9s.mp4",
+      "sha256": "6a51db5d1677c59248c5c81b88033d450a9aa631c7787b772620a5a434b19a0c",
+      "bytes": 77567,
+      "content": "9-second 360x640 H.264 AAC moving subscribe CTA generated with zoompan and drawtext",
+      "provenance": "ffmpeg_zoompan_drawtext_h264_aac_v1 from fictional quick-meal demo artwork",
+      "license": "VeoFlow-Proprietary-Demo"
+    },
+    {
+      "key": "content-reuse-intro-minimal-desk-thumbnail",
+      "path": "content/reuse/intro-minimal-desk-thumb.jpg",
+      "sha256": "e2309d170a418cf059e7a67254c498b437744e097d90537724ae5efa8d00a20e",
+      "bytes": 26201,
+      "content": "360x640 representative frame at 5 seconds for Intro Minimal Desk",
+      "provenance": "ffmpeg_frame_extract_5s from content-reuse-intro-minimal-desk",
+      "license": "VeoFlow-Proprietary-Demo"
+    },
+    {
+      "key": "content-reuse-text-pop-motion-thumbnail",
+      "path": "content/reuse/text-pop-motion-thumb.jpg",
+      "sha256": "f5f5a8ecfe9f5bec3e229fc86caf9d716cab2d52f0c004a56e902db5964800c5",
+      "bytes": 36506,
+      "content": "360x640 representative frame with visible Text Pop treatment",
+      "provenance": "ffmpeg_frame_extract_2.25s from content-reuse-text-pop-motion",
+      "license": "VeoFlow-Proprietary-Demo"
+    },
+    {
+      "key": "content-reuse-whoosh-transition-thumbnail",
+      "path": "content/reuse/whoosh-transition-thumb.jpg",
+      "sha256": "10472fab8e622d4d2fe27f57f3800092dfb6ff3728baae91cb5b621b7463b280",
+      "bytes": 51401,
+      "content": "360x640 representative split frame during the wipe-left transition",
+      "provenance": "ffmpeg_frame_extract_3.5s from content-reuse-whoosh-transition",
+      "license": "VeoFlow-Proprietary-Demo"
+    },
+    {
+      "key": "content-reuse-clock-tick-sound-thumbnail",
+      "path": "content/reuse/clock-tick-sound-waveform.jpg",
+      "sha256": "b0bf5d31549cd55bebd60f0ad8bb2bdc0c4a0734235afb065ca0181e564f188c",
+      "bytes": 7053,
+      "content": "360x640 white-on-black waveform rendered from the six-second tick audio",
+      "provenance": "ffmpeg_showwavespic_white_v1 from content-reuse-clock-tick-sound",
+      "license": "VeoFlow-Proprietary-Demo"
+    },
+    {
+      "key": "content-reuse-cta-subscribe-button-thumbnail",
+      "path": "content/reuse/cta-subscribe-button-thumb.jpg",
+      "sha256": "b1b5e9f08be84e67310dcd4078384f1c34baf3ebd11d4893dedc17a32b5366af",
+      "bytes": 37118,
+      "content": "360x640 representative frame with visible Subscribe CTA button",
+      "provenance": "ffmpeg_frame_extract_4.5s from content-reuse-cta-subscribe-button",
+      "license": "VeoFlow-Proprietary-Demo"
+    }
+  ]
+}

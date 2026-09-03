@@ -1,0 +1,9 @@
+CenterWorkspace 1.0 CenterWorkspace.qml
+CoordinationPage 1.0 CoordinationPage.qml
+ChannelConfigurationPage 1.0 ChannelConfigurationPage.qml
+ProgressPage 1.0 ProgressPage.qml
+PublishingSchedulePage 1.0 PublishingSchedulePage.qml
+PublishingProfilesPage 1.0 PublishingProfilesPage.qml
+AttentionPage 1.0 AttentionPage.qml
+AutomationHistoryPage 1.0 AutomationHistoryPage.qml
+

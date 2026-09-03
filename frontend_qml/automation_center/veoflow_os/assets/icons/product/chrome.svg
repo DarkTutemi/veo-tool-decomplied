@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" role="img" aria-label="Google Chrome">
+  <path fill="#EA4335" d="M12 12 12 1a11 11 0 0 1 9.526 16.5Z"/>
+  <path fill="#FBBC05" d="m12 12 9.526 5.5A11 11 0 0 1 2.474 17.5Z"/>
+  <path fill="#34A853" d="m12 12-9.526 5.5A11 11 0 0 1 12 1Z"/>
+  <circle cx="12" cy="12" r="4.7" fill="#fff"/>
+  <circle cx="12" cy="12" r="3.7" fill="#4285F4"/>
+</svg>

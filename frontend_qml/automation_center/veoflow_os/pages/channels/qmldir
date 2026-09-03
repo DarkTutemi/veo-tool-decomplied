@@ -1,0 +1,7 @@
+BrowserHeader 1.0 BrowserHeader.qml
+BrowserComboBox 1.0 BrowserComboBox.qml
+BrowserCreateDialog 1.0 BrowserCreateDialog.qml
+BrowserInventory 1.0 BrowserInventory.qml
+BrowserInspector 1.0 BrowserInspector.qml
+ChannelProductionProfileEditor 1.0 ChannelProductionProfileEditor.qml
+PlatformHealthStrip 1.0 PlatformHealthStrip.qml
