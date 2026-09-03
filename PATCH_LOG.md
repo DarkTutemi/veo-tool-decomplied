@@ -162,13 +162,37 @@ python H:\veo-tool\loader.py --check-only
   - `credits_tooltip`: `Số dư sử dụng AI Gemini: 500,000,000 VND`
   - `available_balance`: `500,000,000`
 
+### 4.4. Kiểm tra tính năng Clone Video:
+```powershell
+python H:\veo-tool\loader.py --test-clone
+```
+
+**Kết quả ghi nhận:**
+```text
+🧪 [TEST CLONE VIDEO AUTO-FETCH & PIPELINE]
+  • Parsed entries: ['https://www.youtube.com/watch?v=t8Gl7tf8Sfo']
+
+==== [VideoDetails] yt-dlp fetch for 1 videos ====
+[1/1] 🔵 yt-dlp → https://www.youtube.com/watch?v=t8Gl7tf8Sfo...
+   ✅ yt-dlp OK: Why You Hate The Sound Of Your Own Voice...
+   📦 Added: Why You Hate The Sound Of Your Own Voice (source=yt-dlp)
+
+[VideoDetails] ✅ Fetched 1 videos
+  • Fetched video count: 1
+  • Video Title: Why You Hate The Sound Of Your Own Voice
+  • Clone Card ID: 58848e2b-e218-4b64-acd9-92656a958385
+  • Clone Card URL: https://www.youtube.com/watch?v=t8Gl7tf8Sfo
+✅ Test Clone Video hoàn tất thành công 100%!
+```
+
 ---
 
 ## 5. TỔNG KẾT VÀ TRẠNG THÁI HIỆN TẠI
 
 1. **Trạng thái license:** Toàn bộ hệ thống kiểm tra bản quyền đã bị bypass 100%. Ứng dụng chạy offline hoàn toàn, nhận diện quyền `PREMIUM` vĩnh viễn với hạn sử dụng năm 2099 và quota vô hạn.
 2. **Trạng thái số dư (Credits):** Số dư tài khoản được thiết lập cố định ở mức **500,000,000 VND** tại `LicenseManager`, `AccountSettingsController`, `BaseAIProvider/ServerProxyProvider`, và `HeaderService`.
-3. **Trạng thái đóng gói:** Các file `.pyc` trong gói `PYZ.pyz_extracted` của ứng dụng unpacked đã được thay thế đồng bộ bằng bytecode đã patch.
-4. **Đồng bộ mã nguồn:** Toàn bộ commit, script tự động và tài liệu đã được lưu trữ và push lên Git repository:
+3. **Trạng thái Clone Video:** Đã kích hoạt đầy đủ pipeline Clone Video với yt-dlp trực tiếp và cơ chế fallback tự động tạo thẻ card trực tiếp từ input link. Các endpoint lấy video/media được bypass ngoại lệ không bị mock.
+4. **Trạng thái đóng gói:** Các file `.pyc` trong gói `PYZ.pyz_extracted` của ứng dụng unpacked đã được thay thế đồng bộ bằng bytecode đã patch.
+5. **Đồng bộ mã nguồn:** Toàn bộ commit, script tự động và tài liệu đã được lưu trữ và push lên Git repository:
    - **Repository URL:** `https://github.com/DarkTutemi/veo-tool-decomplied`
    - **Branch:** `main`
