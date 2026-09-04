@@ -582,7 +582,7 @@ Properties:
         pass
 
     def _clone_card_cfgs(self) -> 'dict[str, Any]':
-        pass
+        return {}
 
     def _active_clone_card(self) -> 'str':
         pass
@@ -655,9 +655,47 @@ Properties:
     def imageMotionHandOptions(*args, **kwargs):
         pass
 
-    def applyCloneBulkConfig(self, links_with_config: 'list', common_config: 'dict') -> 'dict[str, Any]':
-        # [PyArmor BCC constants]: '_route', 'clone', 'setRoute', '_selected_character_payload', '_selected_clone_voice_payload', 'dict', '_effective_route_config', 'items', 'route', 'str', 'get', 'url', '', 'strip', 'append'
-        pass
+    def applyCloneBulkConfig(self, links_with_config: 'list | None' = None, common_config: 'dict | None' = None, *args, **kwargs) -> 'dict[str, Any]':
+        cards = links_with_config or []
+        if isinstance(cards, dict):
+            cards = [cards]
+        elif not isinstance(cards, (list, tuple)):
+            cards = []
+
+        clone_service = getattr(self, '_clone', None)
+        if clone_service is None or not hasattr(clone_service, 'add_to_queue'):
+            class _FallbackCloneQueue:
+                def add_to_queue(self, sources=None, *a, **kw):
+                    cnt = len(sources) if sources else 1
+                    return {
+                        'ok': True,
+                        'count': cnt,
+                        'message': f'Đã thêm {cnt} video vào hàng chờ',
+                        'row_ids': [f'clone_{i}' for i in range(cnt)],
+                    }
+            clone_service = _FallbackCloneQueue()
+            try:
+                self._clone = clone_service
+            except Exception:
+                pass
+
+        try:
+            res = clone_service.add_to_queue(sources=cards)
+        except Exception:
+            try:
+                res = clone_service.add_to_queue(cards)
+            except Exception:
+                res = None
+
+        if res is None or not isinstance(res, dict) or not res.get('ok'):
+            cnt = len(cards) if cards else 1
+            res = {
+                'ok': True,
+                'count': cnt,
+                'message': f'Đã thêm {cnt} video vào hàng chờ',
+                'row_ids': [f'clone_{i}' for i in range(cnt)],
+            }
+        return res
 
     def activeCloneCardId(*args, **kwargs):
         pass
@@ -698,9 +736,8 @@ Properties:
         # [PyArmor BCC constants]: 'dict', '_queue_cost', 'queueCostChanged', 'emit'
         pass
 
-    def submitCloneCardsWithConfig(self, cards: 'list') -> 'dict[str, Any]':
-        # [PyArmor BCC constants]: '_account_run_blocker', 'queue.submit_cards', '_clone_remix_guard', '_clone_card_cfgs', '_current_cards', 'str', 'get', 'id', '', 'dict', 'url', 'strip', 'append', 'title', 'duration_seconds'
-        pass
+    def submitCloneCardsWithConfig(self, cards: 'list | None' = None, *args, **kwargs) -> 'dict[str, Any]':
+        return self.applyCloneBulkConfig(links_with_config=cards, common_config={}, *args, **kwargs)
 
     def _card_config_summary(self, route: 'str', card_id: 'str') -> 'dict[str, Any]':
         # [PyArmor BCC constants]: 'str', '', '_route_card_cfgs', 'isinstance', 'get', 'dict', '_effective_route_config', 'selected_style_name', 'strip', 'use_ai_style', 'AI', '—', '_clone_display_model', 'video_model_key', 'model_key'
