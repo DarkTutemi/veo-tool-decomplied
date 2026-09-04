@@ -46,6 +46,18 @@ EXTRACTED_DIR = os.path.join(BASE_DIR, "unpack-veotool", "VEOFLOWPROMAX.exe_extr
 PYZ_DIR = os.path.join(EXTRACTED_DIR, "PYZ.pyz_extracted")
 APP_SOURCE_DIR = os.path.join(BASE_DIR, "decompiled", "app_source")
 
+# Cờ điều khiển Mock: True = dùng mock (mặc định cho bản crack), False = gửi request thật (khi truyền --no-mock)
+ENABLE_MOCK = False if "--no-mock" in sys.argv else True
+CAPTURE_LOG_FILE = os.path.join(BASE_DIR, "capture_log.txt")
+
+def capture_log(msg: str):
+    print(msg)
+    try:
+        with open(CAPTURE_LOG_FILE, "a", encoding="utf-8") as f:
+            f.write(msg + "\n")
+    except Exception:
+        pass
+
 # 3. Add DLL search directories for C/C++ dependencies and Qt
 if hasattr(os, "add_dll_directory"):
     try:
@@ -204,6 +216,20 @@ try:
 
     def fake_session_request(self, method, url, *args, **kwargs):
         url_str = str(url).lower()
+
+        # Khi ENABLE_MOCK is False: gửi request thật, in log và ghi vào file capture_log.txt
+        if not ENABLE_MOCK:
+            headers = kwargs.get("headers", {})
+            body = kwargs.get("data") or kwargs.get("json") or ""
+            capture_log(f"[REAL REQUEST] Method: {method} | URL: {url} | Headers: {headers} | Body: {body}")
+            try:
+                resp = old_session_request(self, method, url, *args, **kwargs)
+                resp_text = getattr(resp, "text", "")[:500]
+                capture_log(f"[REAL RESPONSE] Status: {resp.status_code} | Body: {resp_text}")
+                return resp
+            except Exception as e:
+                capture_log(f"[REAL REQUEST ERROR] Method: {method} | URL: {url} | Error: {e}")
+                raise
 
         # Mock jobs/submit để luôn trả về thành công ngay lập tức
         if "jobs/submit" in url_str:
@@ -370,8 +396,11 @@ try:
                     "expires_at": "2099-12-31",
                     "remaining_count": 999999,
                     "quota": 999999,
+                    "gateway_access_token": "vfg_offline_premium_token_v4",
+                    "refresh_token": "vfr_offline_premium_refresh_v4",
+                    "session_id": "sess_offline_permanent",
                     "auth": {
-                        "gateway_access_token": "fake_gateway_token_v4",
+                        "gateway_access_token": "vfg_offline_premium_token_v4",
                         "protocol_version": 4.0,
                     },
                 },

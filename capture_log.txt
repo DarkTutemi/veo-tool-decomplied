@@ -1,0 +1,33 @@
+[REAL REQUEST] Method: POST | URL: https://ai.veoflow.dev/v2/jobs/submit | Headers: {} | Body: {'type': 'clone'}
+[REAL RESPONSE] Status: 410 | Body: {"error":"Gateway execution and upload routes are retired; use local AI Studio","error_code":"GATEWAY_RETIRED"}
+[REAL REQUEST] Method: GET | URL: https://ai.veoflow.dev/v2/jobs/queue-info | Headers: {} | Body: 
+[REAL RESPONSE] Status: 410 | Body: {"error":"Gateway execution and upload routes are retired; use local AI Studio","error_code":"GATEWAY_RETIRED"}
+[REAL REQUEST] Method: POST | URL: https://api.veoflow.dev/v1/client/token/refresh | Headers: {} | Body: {'refresh_token': 'vfr_5l-x4AJv5J_TFw3EMAcPeoGyqssO4lbZPITsGh2CrNs', 'device_id': '7A32EB95AFF44E9DBDA1727E3DD7A2AB'}
+[REAL RESPONSE] Status: 200 | Body: {"success":true,"data":{"device_id":"7A32EB95AFF44E9DBDA1727E3DD7A2AB","gateway_access_expires_at":"2026-09-04T11:18:12Z","gateway_access_token":"vfg_2FBbLOsiehK6UctGZRvLLCRhCWUciVNSKDQRThO96zs","license_key":"N62U-FQD8-XK5A-WQH6","refresh_token":"vfr_qyuflFNhKCo1KdoYS5r2uri7n0g9ghIHgbvpCEHTzcc","refresh_token_expires_at":"2026-09-18T07:18:12Z","session_id":"sess_545b9ef4-1da9-4d3b-b50d-2c178d016649"}}
+
+[REAL REQUEST] Method: GET | URL: https://ai.veoflow.dev/v2/credits/balance | Headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer '} | Body: 
+[REAL RESPONSE] Status: 401 | Body: {"error":"TOKEN_INVALID"}
+[REAL REQUEST] Method: GET | URL: https://ai.veoflow.dev/v2/credits/balance | Headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer '} | Body: 
+[REAL RESPONSE] Status: 401 | Body: {"error":"TOKEN_INVALID"}
+[REAL REQUEST] Method: GET | URL: https://cdn.veoflow.dev/res/manifest.json | Headers: {} | Body: 
+[REAL RESPONSE] Status: 200 | Body: {
+  "VEOFLOW_DENO": {
+    "latest": "2.7.1",
+    "versions": {
+      "2.7.1": {
+        "file": "deno-x86_64-pc-windows-msvc-2.7.1.zip",
+        "url": "https://cdn.veoflow.dev/res/VEOFLOW_DENO/2.7.1/deno-x86_64-pc-windows-msvc-2.7.1.zip",
+        "sha256": "49ee5ca289ce0b1ca444eaa996bb31452186377a43a7b16e9a4e4a6db0c20761",
+        "size": 47183049
+      }
+    }
+  },
+  "VEOFLOW_FFMPEG": {
+    "latest": "2026.05.17",
+    "versions": {
+      "2026.05.17": {
+        "file": "veoflow
+[REAL REQUEST] Method: POST | URL: https://ai.veoflow.dev/v2/jobs/submit | Headers: {} | Body: {'type': 'clone'}
+[REAL RESPONSE] Status: 410 | Body: {"error":"Gateway execution and upload routes are retired; use local AI Studio","error_code":"GATEWAY_RETIRED"}
+[REAL REQUEST] Method: GET | URL: https://ai.veoflow.dev/v2/jobs/queue-info | Headers: {} | Body: 
+[REAL RESPONSE] Status: 410 | Body: {"error":"Gateway execution and upload routes are retired; use local AI Studio","error_code":"GATEWAY_RETIRED"}
