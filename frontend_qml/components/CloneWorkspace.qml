@@ -1789,6 +1789,7 @@ Rectangle {
                         actionId: "work_panel.clone_submit_worklist"
                         text: root.trText("clone.add_to_worklist", "Thêm vào danh sách công việc")
                         selected: true
+                        enabled: true
                         minWidth: VfTheme.dp(186)
                         onClicked: {
                             var cs = root.cards || []

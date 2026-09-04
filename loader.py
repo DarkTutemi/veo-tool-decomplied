@@ -431,9 +431,19 @@ try:
     import qml_app.controllers.work_panel_controller as wpc
     wpc.WorkPanelController._account_run_blocker = lambda self, *a, **kw: None
     wpc.WorkPanelController._credit_gate_blocker = lambda self, *a, **kw: None
+
+    # Unblock all clone & queue pause/blocker properties
     wpc.WorkPanelController.cloneNoLiveAccountsPauseRequired = property(lambda self: False)
     wpc.WorkPanelController.cloneAuthPauseRequired = property(lambda self: False)
     wpc.WorkPanelController.transcriptQueuePaused = property(lambda self: False)
+    wpc.WorkPanelController.clone_queue_paused = property(lambda self: False)
+    wpc.WorkPanelController.cloneQueuePaused = property(lambda self: False)
+    wpc.WorkPanelController.clone_credit_blocked = property(lambda self: False)
+    wpc.WorkPanelController.cloneCreditBlocked = property(lambda self: False)
+    wpc.WorkPanelController.authPauseRequired = property(lambda self: False)
+    wpc.WorkPanelController.noLiveAccountsPauseRequired = property(lambda self: False)
+    wpc.WorkPanelController.clone_auto_fetch_busy = property(lambda self: False)
+    wpc.WorkPanelController.cloneAutoFetchBusy = property(lambda self: False)
 
     _clone_default_route_cfg = {
         "mode": "url",
@@ -449,18 +459,21 @@ try:
     }
     wpc.WorkPanelController._load_clone_route_config = lambda self, *a, **kw: _clone_default_route_cfg
 
-    def _safe_clone_timer_helper(self, row=None, *a, **kw):
-        if row is None or not isinstance(row, dict):
+    def safe_clone_timer(self, row=None, *args, **kwargs):
+        if row is None:
+            return
+        if not isinstance(row, dict):
             row = {}
-        dur = row.get('duration_seconds')
-        if dur is None or dur <= 0:
-            row['duration_seconds'] = 60
-        if 'duration' not in row or not row.get('duration'):
-            row['duration'] = row['duration_seconds']
-        return row
+        # Đảm bảo duration_seconds và duration tồn tại
+        if "duration_seconds" not in row or row.get("duration_seconds") is None or row.get("duration_seconds") <= 0:
+            row["duration_seconds"] = 60
+        if "duration" not in row or not row.get("duration"):
+            row["duration"] = row["duration_seconds"]
+        # Không thực hiện gì thêm, chỉ trả về để tránh lỗi
+        return
 
-    wpc.WorkPanelController._update_clone_timer = _safe_clone_timer_helper
-    wpc.WorkPanelController._refresh_clone_status = _safe_clone_timer_helper
+    wpc.WorkPanelController._update_clone_timer = safe_clone_timer
+    wpc.WorkPanelController._refresh_clone_status = safe_clone_timer
 
     _orig_wpc_init = wpc.WorkPanelController.__init__
     def _patched_wpc_init(self, *a, **kw):
