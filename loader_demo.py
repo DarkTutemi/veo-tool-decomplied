@@ -554,6 +554,22 @@ try:
 
     wpc.WorkPanelController.__init__ = safe_wpc_init
 
+    # 1a. Bypass blockers & unblock pause properties
+    wpc.WorkPanelController._account_run_blocker = lambda self, *a, **kw: None
+    wpc.WorkPanelController._credit_gate_blocker = lambda self, *a, **kw: None
+
+    wpc.WorkPanelController.cloneNoLiveAccountsPauseRequired = property(lambda self: False)
+    wpc.WorkPanelController.cloneAuthPauseRequired = property(lambda self: False)
+    wpc.WorkPanelController.transcriptQueuePaused = property(lambda self: False)
+    wpc.WorkPanelController.clone_queue_paused = property(lambda self: False)
+    wpc.WorkPanelController.cloneQueuePaused = property(lambda self: False)
+    wpc.WorkPanelController.clone_credit_blocked = property(lambda self: False)
+    wpc.WorkPanelController.cloneCreditBlocked = property(lambda self: False)
+    wpc.WorkPanelController.authPauseRequired = property(lambda self: False)
+    wpc.WorkPanelController.noLiveAccountsPauseRequired = property(lambda self: False)
+    wpc.WorkPanelController.clone_auto_fetch_busy = property(lambda self: False)
+    wpc.WorkPanelController.cloneAutoFetchBusy = property(lambda self: False)
+
     # 1b. Define PySide6 Signals & Properties for Clone Creative Modes & Features
     from PySide6.QtCore import Signal, Property
 
@@ -691,6 +707,30 @@ try:
     patch_property_fget('cloneFlowVoiceReferenceLimit', lambda self: 1)
     patch_property_fget('cloneFlowVoiceReferencesSupported', lambda self: True)
     patch_property_fget('cloneFlowVoiceLockSupported', lambda self: True)
+
+    def _compute_stats(self):
+        clone_svc = getattr(self, "_clone", None) or (getattr(self, "_state", None) and getattr(self._state, "_clone", None))
+        if clone_svc and hasattr(clone_svc, "get_stats"):
+            try:
+                return clone_svc.get_stats()
+            except Exception:
+                pass
+        rows = getattr(self, "_queue_rows", [])
+        tot = len(rows)
+        pending = sum(1 for r in rows if r.get("status") in ("pending", "queued", "waiting", "draft"))
+        generating = sum(1 for r in rows if r.get("status") in ("generating", "running", "processing", "cloning"))
+        completed = sum(1 for r in rows if r.get("status") in ("completed", "complete", "success"))
+        failed = sum(1 for r in rows if r.get("status") in ("failed", "error"))
+        return {
+            "total": tot,
+            "pending": pending,
+            "queued": pending,
+            "generating": generating,
+            "completed": completed,
+            "failed": failed,
+            "paused": 0
+        }
+    patch_property_fget('stats', _compute_stats)
 
     def safe_request_queue_cost(self, route="clone", *args, **kwargs):
         cards = []
@@ -987,13 +1027,33 @@ try:
         return res
 
     def safe_refresh_queue_and_stats(self, *args, **kwargs):
-        if hasattr(self, "_load_queue_rows") and callable(self._load_queue_rows):
+        clone_svc = getattr(self, "_clone", None) or (getattr(self, "_state", None) and getattr(self._state, "_clone", None))
+        if clone_svc and hasattr(clone_svc, "list_queue"):
+            try:
+                lq = clone_svc.list_queue()
+                if isinstance(lq, dict) and "rows" in lq:
+                    self._queue_rows = lq["rows"]
+            except Exception:
+                pass
+        elif hasattr(self, "_load_queue_rows") and callable(self._load_queue_rows):
             try:
                 r = self._load_queue_rows()
                 if r:
                     self._queue_rows = r
             except Exception:
                 pass
+        # Update stats
+        if hasattr(self, "_load_stats") and callable(self._load_stats):
+            try:
+                self._stats = self._load_stats(getattr(self, "_queue_rows", []))
+            except Exception:
+                pass
+        elif clone_svc and hasattr(clone_svc, "get_stats"):
+            try:
+                self._stats = clone_svc.get_stats()
+            except Exception:
+                pass
+
         if hasattr(self, "_emit_queue_stats_if_changed"):
             try:
                 self._emit_queue_stats_if_changed()
@@ -1015,6 +1075,33 @@ try:
             except Exception:
                 pass
 
+    orig_start_queue = getattr(wpc.WorkPanelController, 'startQueue', None)
+    def safe_start_queue(self, *args, **kwargs):
+        route = getattr(self, '_route', None) or (getattr(self, '_state', None) and getattr(self._state, '_route', None)) or "clone"
+        print(f"🚀 [WorkPanelController.startQueue] Bắt đầu xử lý hàng chờ route: {route}")
+
+        if orig_start_queue:
+            try:
+                orig_start_queue(self, *args, **kwargs)
+            except Exception as e:
+                print(f"ℹ️ [startQueue original call notice]: {e}")
+
+        clone_svc = getattr(self, '_clone', None) or (getattr(self, '_state', None) and getattr(self._state, '_clone', None))
+        if clone_svc and hasattr(clone_svc, 'start_queue'):
+            cfg = getattr(self, 'currentRouteConfig', {})
+            clone_svc._on_update_callback = lambda row: safe_refresh_queue_and_stats(self)
+            try:
+                res = clone_svc.start_queue(cfg)
+                print(f"✅ [CloneService.start_queue] Result: {res}")
+            except Exception as ce:
+                print(f"❌ [CloneService.start_queue error]: {ce}")
+
+        safe_refresh_queue_and_stats(self)
+        return {"ok": True, "started": True, "route": str(route), "message": "Start requested"}
+
+    wpc.WorkPanelController.startQueue = safe_start_queue
+    wpc.WorkPanelController.resumeCloneQueueAfterAuthUpdate = safe_start_queue
+    wpc.WorkPanelController.continueQueue = safe_start_queue
     wpc.WorkPanelController.refreshQueueAndStats = safe_refresh_queue_and_stats
     wpc.WorkPanelController.applyCloneBulkConfig = safe_apply_clone_bulk
     wpc.WorkPanelController.submitCloneCardsWithConfig = lambda self, cards=None, *a, **kw: safe_apply_clone_bulk(self, links_with_config=cards, common_config=None, *a, **kw)
@@ -1075,7 +1162,9 @@ try:
                 "scenes": scenes,
             }
 
-        def smart_clone_video(self, youtube_url, *args, **kwargs):
+        def smart_clone_video(self, *args, **kwargs):
+            youtube_url = args[0] if len(args) > 0 else (kwargs.pop("youtube_url", None) or kwargs.get("video_url") or kwargs.get("url") or "")
+            rem_args = args[1:] if len(args) > 1 else ()
             cfg = kwargs.get("config") or {}
             c_mode = kwargs.get("creative_mode") or cfg.get("creative_mode") or "original"
             c_input = kwargs.pop("creative_input", None) or kwargs.get("remix_instructions") or cfg.get("creative_input") or cfg.get("remix_instructions") or ""
@@ -1089,14 +1178,26 @@ try:
             if "narration_policy" in cfg and "narration_policy" not in kwargs:
                 kwargs["narration_policy"] = cfg["narration_policy"]
 
+            kwargs.pop("video_url", None)
+            kwargs.pop("youtube_url", None)
+            kwargs.pop("url", None)
+            kwargs.pop("row_id", None)
+
             print(f"🎬 [YouTubeCloneService.clone_video] Mode: {c_mode} | Input: '{c_input}' | URL: {youtube_url}")
             try:
-                return orig_clone_video(self, youtube_url, *args, **kwargs)
+                return orig_clone_video(self, youtube_url, *rem_args, **kwargs)
             except Exception as e:
                 print(f"ℹ️ [YouTubeCloneService fallback (mode={c_mode})]: {e}")
                 return _build_mock_clone_result(youtube_url, c_mode, c_input, kwargs)
 
-        def smart_analyze(self, youtube_url, *args, **kwargs):
+        def smart_analyze(self, *args, **kwargs):
+            pos_url = args[0] if len(args) > 0 else None
+            kw_url = kwargs.pop("youtube_url", None) or kwargs.pop("video_url", None) or kwargs.pop("url", None) or ""
+            youtube_url = pos_url or kw_url
+            rem_args = args[1:] if len(args) > 1 else ()
+            kwargs.pop("video_url", None)
+            kwargs.pop("youtube_url", None)
+            kwargs.pop("url", None)
             cfg = kwargs.get("config") or {}
             c_mode = kwargs.get("creative_mode") or cfg.get("creative_mode") or "original"
             c_input = kwargs.get("creative_input") or kwargs.get("remix_instructions") or cfg.get("creative_input") or ""
@@ -1104,7 +1205,7 @@ try:
             if not kwargs.get("remix_instructions") and c_input:
                 kwargs["remix_instructions"] = c_input
             try:
-                return orig_analyze(self, youtube_url, *args, **kwargs)
+                return orig_analyze(self, youtube_url, *rem_args, **kwargs)
             except Exception as e:
                 return _build_mock_clone_result(youtube_url, c_mode, c_input, kwargs)
 

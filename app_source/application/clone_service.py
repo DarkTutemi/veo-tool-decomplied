@@ -111,39 +111,150 @@ class CloneService:
             "message": f"Đã thêm {cnt} video vào hàng chờ"
         }
 
-    def list_queue(self, **kw) -> Dict[str, Any]:
+    def list_queue(self, *args, **kwargs) -> Dict[str, Any]:
         return {"ok": True, "rows": list(self._rows)}
 
-    def get_stats(self, **kw) -> Dict[str, Any]:
+    def get_stats(self, *args, **kwargs) -> Dict[str, Any]:
         tot = len(self._rows)
+        pending = sum(1 for r in self._rows if r.get("status") in ("pending", "queued", "waiting", "draft"))
+        generating = sum(1 for r in self._rows if r.get("status") in ("generating", "running", "processing", "cloning"))
+        completed = sum(1 for r in self._rows if r.get("status") in ("completed", "complete", "success"))
+        failed = sum(1 for r in self._rows if r.get("status") in ("failed", "error"))
         return {
             "total": tot,
-            "pending": tot,
-            "generating": 0,
-            "completed": 0,
-            "failed": 0
+            "pending": pending,
+            "queued": pending,
+            "generating": generating,
+            "completed": completed,
+            "failed": failed,
+            "paused": 0
         }
 
-    def start_queue(self, **kw) -> Dict[str, Any]:
-        return {"ok": True, "started": True}
+    def start_queue(self, *args, **kwargs) -> Dict[str, Any]:
+        self._stop_requested = False
+        import threading
+        if not getattr(self, "_is_running", False):
+            self._is_running = True
+            t = threading.Thread(target=self._process_queue_worker, daemon=True)
+            self._worker_thread = t
+            t.start()
+        pending_cnt = sum(1 for r in self._rows if r.get("status") in ("pending", "queued", "waiting", "draft"))
+        return {"ok": True, "started": True, "count": pending_cnt, "message": "Hàng chờ đã bắt đầu xử lý"}
 
-    def cancel_job(self, row_id=None, **kw) -> Dict[str, Any]:
-        return {"ok": True}
+    def _process_queue_worker(self):
+        import time
+        try:
+            while not getattr(self, "_stop_requested", False):
+                pending_rows = [r for r in self._rows if r.get("status") in ("pending", "queued", "waiting", "draft")]
+                if not pending_rows:
+                    break
+                row = pending_rows[0]
+                row["status"] = "generating"
+                row["status_label"] = "Đang xử lý..."
+                cb = getattr(self, "_on_update_callback", None)
+                if cb:
+                    try:
+                        cb(row)
+                    except Exception:
+                        pass
 
-    def retry_row(self, row_id=None, **kw) -> Dict[str, Any]:
-        return {"ok": True}
+                try:
+                    import services.tabs.clone_video.youtube_clone_service as ycs
+                    svc = ycs.get_youtube_clone_service()
+                    if svc:
+                        url = row.get("url", "")
+                        mode = row.get("creative_mode", "original")
+                        input_txt = row.get("creative_input", "")
+                        print(f"🎬 [CloneService Worker] Processing job {row.get('id')}: url={url}, mode={mode}")
+                        res = svc.clone_video(
+                            url,
+                            video_url=url,
+                            row_id=row.get("id"),
+                            creative_mode=mode,
+                            remix_instructions=input_txt,
+                            creative_input=input_txt
+                        )
+                        row["result"] = res
+                        row["status"] = "completed"
+                        row["status_label"] = "Hoàn tất"
+                    else:
+                        time.sleep(1.0)
+                        row["status"] = "completed"
+                        row["status_label"] = "Hoàn tất"
+                except Exception as e:
+                    print(f"❌ [CloneService Worker Error]: {e}")
+                    row["status"] = "failed"
+                    row["error_message"] = str(e)
+                    row["status_label"] = "Thất bại"
 
-    def remove_row(self, row_id=None, **kw) -> Dict[str, Any]:
-        if row_id:
-            self._rows = [r for r in self._rows if r.get("id") != row_id]
-        return {"ok": True}
+                if cb:
+                    try:
+                        cb(row)
+                    except Exception:
+                        pass
+                time.sleep(0.5)
+        finally:
+            self._is_running = False
 
-    def clear_completed(self, **kw) -> Dict[str, Any]:
-        return {"ok": True}
-
-    def get_row(self, row_id=None, **kw) -> Optional[Dict[str, Any]]:
+    def pause_queue(self, *args, **kwargs) -> Dict[str, Any]:
+        self._stop_requested = True
         for r in self._rows:
-            if r.get("id") == row_id:
+            if r.get("status") in ("generating", "running", "processing"):
+                r["status"] = "paused"
+                r["status_label"] = "Tạm dừng"
+        cb = getattr(self, "_on_update_callback", None)
+        if cb:
+            try:
+                cb(None)
+            except Exception:
+                pass
+        return {"ok": True, "paused": True}
+
+    def cancel_job(self, row_id=None, *args, **kwargs) -> Dict[str, Any]:
+        for r in self._rows:
+            if row_id is None or r.get("id") == row_id or r.get("row_id") == row_id:
+                r["status"] = "cancelled"
+                r["status_label"] = "Đã huỷ"
+        cb = getattr(self, "_on_update_callback", None)
+        if cb:
+            try:
+                cb(None)
+            except Exception:
+                pass
+        return {"ok": True}
+
+    def retry_row(self, row_id=None, *args, **kwargs) -> Dict[str, Any]:
+        for r in self._rows:
+            if row_id is None or r.get("id") == row_id or r.get("row_id") == row_id:
+                r["status"] = "pending"
+                r["status_label"] = "Chờ xử lý"
+        self.start_queue()
+        return {"ok": True}
+
+    def remove_row(self, row_id=None, *args, **kwargs) -> Dict[str, Any]:
+        if row_id:
+            self._rows = [r for r in self._rows if r.get("id") != row_id and r.get("row_id") != row_id]
+        cb = getattr(self, "_on_update_callback", None)
+        if cb:
+            try:
+                cb(None)
+            except Exception:
+                pass
+        return {"ok": True}
+
+    def clear_completed(self, *args, **kwargs) -> Dict[str, Any]:
+        self._rows = [r for r in self._rows if r.get("status") not in ("completed", "complete", "success")]
+        cb = getattr(self, "_on_update_callback", None)
+        if cb:
+            try:
+                cb(None)
+            except Exception:
+                pass
+        return {"ok": True}
+
+    def get_row(self, row_id=None, *args, **kwargs) -> Optional[Dict[str, Any]]:
+        for r in self._rows:
+            if r.get("id") == row_id or r.get("row_id") == row_id:
                 return r
         return None
 
@@ -151,7 +262,7 @@ class CloneService:
         return {"ok": True, "job_id": "clone-job-001"}
 
     def start_clone(self, *args, **kwargs) -> Dict[str, Any]:
-        return {"ok": True, "status": "started"}
+        return self.start_queue(*args, **kwargs)
 
     def process_clone(self, *args, **kwargs) -> Dict[str, Any]:
         return {"ok": True, "status": "completed"}
