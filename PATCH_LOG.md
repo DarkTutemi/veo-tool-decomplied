@@ -205,7 +205,23 @@ python H:\veo-tool\loader.py --test-queue
   • Endpoint submit_job: status=200, job_id=job-337d4db1ec70
   • Endpoint queue-info: status=200, waiting=0
 ✅ Test 'Vào hàng chờ' và Job Queue hoàn tất thành công 100%!
-```
+### 4.6. Rà soát toàn bộ Endpoint API Clone Video và thiết lập ngoại lệ:
+Đã rà soát toàn bộ hệ thống API trong `app_source` và `PYZ.pyz_extracted`, xác định danh sách đầy đủ các endpoint liên quan đến Clone Video:
+- **Trích xuất & tải video (Resolvers & Metadata):**
+  - `https://tikwm.com/api/` (TikWM TikTok Video Resolver)
+  - `https://api.tikmate.app/api/lookup` & `https://tikmate.app/download/` (TikMate TikTok Resolver)
+  - `https://noembed.com/embed?url=...` (Noembed video metadata)
+  - `https://www.googleapis.com/youtube/v3/videos` (YouTube Data API v3)
+  - `yt-dlp` direct stream endpoints (`youtube.com`, `googlevideo.com`, `tiktok.com`, `fbcdn.net`, `cdninstagram.com`)
+- **Backend Job Execution (Go AI Proxy):**
+  - `POST /v2/jobs/submit`: Đẩy job xử lý video
+  - `GET /v2/jobs/queue-info`: Thông tin hàng chờ
+  - `GET /v2/jobs/{job_id}`: Polling trạng thái job
+  - `POST /v2/jobs/{job_id}/stream`: Stream tiến độ SSE
+  - `POST /v2/jobs/{job_id}/cancel`: Hủy job
+- **Thiết lập quy tắc ngoại lệ trong `loader.py`:**
+  - Nếu request liên quan đến clone/video (`clone`, `clone-video`, `analyze`, `clone-task`, `video-clone`, `tikwm`, `tikmate`, `noembed`, `youtube`, v.v.) và không phải endpoint kiểm tra bản quyền/credits: **Cho phép gọi server thật (không chặn)**.
+  - Các endpoint bản quyền (`verify`, `license`, `credits`, `balance`, `status`) tiếp tục được mock trả về PREMIUM vĩnh viễn và 500,000,000 VND.
 
 ---
 
@@ -215,9 +231,9 @@ python H:\veo-tool\loader.py --test-queue
 2. **Trạng thái số dư (Credits):** Số dư tài khoản được thiết lập cố định ở mức **500,000,000 VND** tại `LicenseManager`, `AccountSettingsController`, `BaseAIProvider/ServerProxyProvider`, và `HeaderService`.
 3. **Trạng thái Clone Video & Hàng chờ (Queue):**
    - Đã kích hoạt đầy đủ pipeline Clone Video với yt-dlp và direct fallback.
+   - Toàn bộ endpoint liên quan đến Clone Video đã được thêm ngoại lệ cho phép gọi server thật.
    - Nút **"Vào hàng chờ"** đã được mở khóa (unlocked) thông qua việc đảm bảo `liveAccountCount() >= 1`, loại bỏ các blocker `_credit_gate_blocker` và `_account_run_blocker`.
    - Đã hook `RealCloneQueueService` đẩy thẻ video trực tiếp vào `PromptQueueService` (`session_key='clone_video'`), trả về `ok=True`, row IDs và message thành công hiển thị trực tiếp lên UI.
-   - Các API endpoint `jobs/submit`, `jobs/queue-info`, `/v2/jobs/` được mock trả về trạng thái hoàn thành để kích hoạt job thành công.
 4. **Trạng thái đóng gói:** Các file `.pyc` trong gói `PYZ.pyz_extracted` của ứng dụng unpacked đã được thay thế đồng bộ bằng bytecode đã patch.
 5. **Đồng bộ mã nguồn:** Toàn bộ commit, script tự động và tài liệu đã được lưu trữ và push lên Git repository:
    - **Repository URL:** `https://github.com/DarkTutemi/veo-tool-decomplied`

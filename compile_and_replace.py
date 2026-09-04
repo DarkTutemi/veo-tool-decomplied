@@ -12,8 +12,26 @@ Description:
 import os
 import sys
 import shutil
+import subprocess
 import py_compile
 from pathlib import Path
+
+# Ensure running under Python 3.12 because unpacked bytecode .pyc is compiled for Python 3.12
+if sys.version_info[:2] != (3, 12):
+    py312_paths = [
+        os.path.expandvars(r"%APPDATA%\uv\python\cpython-3.12-windows-x86_64-none\python.exe"),
+        os.path.expanduser(r"~\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\python.exe"),
+        os.path.expandvars(r"%APPDATA%\uv\python\cpython-3.12.13-windows-x86_64-none\python.exe"),
+    ]
+    py312_exe = None
+    for p in py312_paths:
+        if os.path.exists(p):
+            py312_exe = p
+            break
+    if py312_exe:
+        sys.exit(subprocess.call([py312_exe, os.path.abspath(__file__)] + sys.argv[1:]))
+    elif shutil.which("uv"):
+        sys.exit(subprocess.call(["uv", "run", "--python", "3.12", "python", os.path.abspath(__file__)] + sys.argv[1:]))
 
 # Force UTF-8 on Windows console
 if sys.platform == "win32":
@@ -80,11 +98,23 @@ for mod in modules:
         shutil.copy2(src_py, dest_py)
 print(f"  ✅ Copied {compiled_count} source files to {DEST_LICENSE_DIR.name}")
 
-# Also compile account_settings_controller and ai_providers if modified
+# Also compile account_settings_controller, work_panel_controller, clone_service, and ai_providers
 extra_modules = [
     (
         BASE_DIR / "decompiled" / "app_source" / "qml_app" / "controllers" / "account_settings_controller.py",
         BASE_DIR / "unpack-veotool" / "VEOFLOWPROMAX.exe_extracted" / "PYZ.pyz_extracted" / "qml_app" / "controllers" / "account_settings_controller.pyc"
+    ),
+    (
+        BASE_DIR / "decompiled" / "app_source" / "qml_app" / "controllers" / "work_panel_controller.py",
+        BASE_DIR / "unpack-veotool" / "VEOFLOWPROMAX.exe_extracted" / "PYZ.pyz_extracted" / "qml_app" / "controllers" / "work_panel_controller.pyc"
+    ),
+    (
+        BASE_DIR / "decompiled" / "app_source" / "application" / "clone_service.py",
+        BASE_DIR / "unpack-veotool" / "VEOFLOWPROMAX.exe_extracted" / "PYZ.pyz_extracted" / "application" / "clone_service.pyc"
+    ),
+    (
+        BASE_DIR / "decompiled" / "app_source" / "application" / "work_panel" / "clone.py",
+        BASE_DIR / "unpack-veotool" / "VEOFLOWPROMAX.exe_extracted" / "PYZ.pyz_extracted" / "application" / "work_panel" / "clone.pyc"
     ),
     (
         BASE_DIR / "decompiled" / "app_source" / "services" / "shared" / "ai" / "ai_providers.py",
@@ -104,6 +134,19 @@ for src_f, dest_f in extra_modules:
 # Step 4: Verification test inside unpacked environment
 print(f"\n🧪 [4/4] Testing license check in unpacked runtime environment...")
 
+# Pre-import standard library modules so Python 3.12 doesn't load Python 3.10 stdlib pyc from PYZ
+import typing
+import inspect
+import datetime
+import hashlib
+import json
+import logging
+import re
+import socket
+import threading
+import time
+import urllib
+
 # Add DLL directory and paths matching the application environment
 extracted_dir = BASE_DIR / "unpack-veotool" / "VEOFLOWPROMAX.exe_extracted"
 pyz_dir = extracted_dir / "PYZ.pyz_extracted"
@@ -112,14 +155,16 @@ os.add_dll_directory(str(BASE_DIR))
 if (pyz_dir / "numpy.libs").exists():
     os.add_dll_directory(str(pyz_dir / "numpy.libs"))
 
-sys.path.insert(0, str(extracted_dir))
-sys.path.insert(0, str(pyz_dir))
+app_source_dir = BASE_DIR / "decompiled" / "app_source"
+for p in [str(BASE_DIR), str(app_source_dir), str(extracted_dir), str(pyz_dir)]:
+    if p not in sys.path:
+        sys.path.insert(0, p)
 
 # Mock missing tab services for headless execution if needed
-from reconstruct_key_modules import FlexibleModule, missing_tab_services
-for m in missing_tab_services:
-    if m not in sys.modules:
-        sys.modules[m] = FlexibleModule(m)
+import types
+class FlexibleModule(types.ModuleType):
+    def __getattr__(self, k):
+        return lambda *a, **kw: None
 
 # Import from the replaced license package
 import license

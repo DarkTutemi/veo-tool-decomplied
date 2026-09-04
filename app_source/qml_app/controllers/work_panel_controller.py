@@ -314,6 +314,14 @@ class WorkPanelController(QObject, WorkPanelControllerExtendAiMixin):
     _ROUTE_OPTION_INT_KEYS = {'clip_duration_seconds', 'output_count', 'duration'}
     _CLONE_FETCH_RETRY_DELAYS = (2.0, 5.0, 10.0)
     _AFF_IMAGE_EXTS = {'.webp', '.png', '.jpeg', '.bmp', '.jpg'}
+    is_demo = False
+    tier = "PREMIUM"
+
+    def has_feature(self, code: str = 'clone') -> bool:
+        return True
+
+    def is_demo_mode(self) -> bool:
+        return False
     staticMetaObject = PySide6.QtCore.QMetaObject("WorkPanelController" inherits "QObject":
 Properties:
   #1 "route", QString [designable], not...
