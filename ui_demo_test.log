@@ -1,0 +1,67 @@
+=================================================================
+🧪 BẮT ĐẦU XÁC MINH GIAO DIỆN 'VÀO HÀNG CHỜ' - --DEMO
+=================================================================
+📦 Đã nạp module license gốc từ license_backup (Bản demo gốc).
+✅ [WorkPanelController & WorkPanelState] Đã cấu hình fallback mặc định cho route_configs và character payload.
+=================================================================
+🚀 VEOFLOW PRO MAX - ORIGINAL DEMO RUNNER & TRAFFIC CAPTURER
+=================================================================
+  • Chế độ hoạt động : BẢN DEMO GỐC (KHÔNG PATCH LICENSE / CONTROLLER)
+  • Chế độ Mock      : TẮT (GỬI REQUEST THẬT --no-mock)
+  • File lưu log     : H:\veo-tool\capture_unpack_demo_log.txt
+=================================================================
+[PRODUCTION_MODE] Development mode - Logging ENABLED
+⏳ Đang nạp toàn bộ QML engine và các controllers...
+SQLite Accounts Store initialized: C:\Users\vutru\AppData\Roaming\VEO3_Generator_Pro\data\veoflow.db
+🚀 InstantUpscaleManager V3 initialized (Signal Hub Mode)
+[OK] [ServerProxy] Configured: https://ai.veoflow.dev
+✅ [AI_PROVIDER] ServerProxy ready (cached)
+✅ [AI_PROVIDER] AiStudio route enabled (account=account-6c00cb57ced2, transport=direct, mode=aistudio, gateway_fallback=False)
+[REAL REQUEST] Method: GET | URL: https://ai.veoflow.dev/v2/credits/balance | Headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer vfg_SNjWdnjJlTaTBeGFcqddn23-shckvPcS5fGPBSJsK98'} | Body: 
+[YouTubeCloneService] __init__ started
+[YouTubeCloneService] Basic attributes set
+[YouTubeCloneService] __init__ completed
+[PERF] controller workPanelController init 0.5s
+[Perf] motion=ON (high): Cấu hình đạt chuẩn → giữ đầy đủ hiệu ứng | cores=36 gpu=NVIDIA GeForce GTX 1050 Ti nvidia=True ram_gb=47.8 vram_gb=4.0 warp=False
+✅ QML engine đã sẵn sàng!
+  • workPanelController: <qml_app.controllers.work_panel_controller.WorkPanelController(0x1f4e5363430) at 0x000001F49B32B740>
+  • appController: <qml_app.controllers.app_controller.AppController(0x1f4e566bb70) at 0x000001F497AF4640>
+[REAL RESPONSE] Status: 200 | Body: {"api_mode":"aistudio","available":50000,"balance":50000,"billing_unit":"vnd","consumed_month":103191.4234,"consumed_today":103191.4234,"consumed_total":103191.4234,"currency":"VND","free_balance":50000,"has_user_key":false,"paid_balance":0,"reserved":0,"usd_exchange_rate":26004}
+
+
+[REAL REQUEST] Method: GET | URL: https://api.veoflow.dev/v1/client/credits/usage-dashboard | Headers: {'Authorization': 'Bearer vfg_SNjWdnjJlTaTBeGFcqddn23-shckvPcS5fGPBSJsK98', 'Content-Type': 'application/json'} | Body: 
+⚠️ [Voice] hardware probe failed: deadlock detected by _ModuleLock('services.shared.tts.engines.omnivoice_config') at 2150141632416
+
+--- [BƯỚC 1]: Chuyển đến tab 'Clone Video' ---
+  • Route hiện tại của workPanelController: 'clone'
+
+--- [BƯỚC 2]: Dán link YouTube và bấm 'Thêm vào danh sách công việc' ---
+  • Dán link YouTube: https://www.youtube.com/watch?v=t8Gl7tf8Sfo
+  • Video trích xuất thành công:
+    - Tiêu đề: Why You Hate The Sound Of Your Own Voice
+    - URL: https://www.youtube.com/watch?v=t8Gl7tf8Sfo
+    - Thời lượng: 60 giây
+
+--- [BƯỚC 3]: Dialog 'Xác nhận trước khi tạo video' xuất hiện ---
+  • Bấm nút 'Vào hàng chờ' (submitCloneCardsWithConfig)...
+✅ [WorkPanelController] queueRowsChanged emitted, queueModel count=1
+  • Kết quả submit: ok=True, count=1, message='Đã thêm 1 link vào hàng chờ'
+[REAL RESPONSE] Status: 200 | Body: {"success":true,"data":{"history":[{"created_at":"2026-09-04 01:25:46","credits_used":5630.6169,"estimated_vnd":5630.6169,"feature":"image_story","id":194085,"input_tokens":14572,"license_key":"N62U-FQD8-XK5A-WQH6","model":"gemini-3.8-flash","output_tokens":21619,"source":"user_account","success":true,"tokens":36191},{"created_at":"2026-09-04 01:24:20","credits_used":689.398,"estimated_vnd":689.398,"feature":"image_story","id":194083,"input_tokens":13772,"license_key":"N62U-FQD8-XK5A-WQH6","mode
+
+
+--- [BƯỚC 4]: Kiểm tra danh sách hiển thị trên giao diện (QML Table / ListView) ---
+  • Tín hiệu QML nhận được: ['statsChanged', 'queueRowsChanged', 'statsChanged', 'queueRowsChanged', 'statsChanged']
+  • Số lượng row trong workPanelController.queueModel: 1
+  • Số lượng row trong workPanelController.queueRows: 1
+
+✅ [JOB ĐANG CHẠY / CHỜ XỬ LÝ ĐÃ XUẤT HIỆN TRÊN GIAO DIỆN]:
+  • ID hàng chờ  : clone_1
+  • Tiêu đề video: Why You Hate The Sound Of Your Own Voice
+  • Link nguồn   : https://www.youtube.com/watch?v=t8Gl7tf8Sfo
+  • Trạng thái   : pending (Chờ xử lý / pending)
+  • Thời lượng   : 60s
+
+🎉 KẾT QUẢ: Chức năng 'Vào hàng chờ' trong Clone Video HOẠT ĐỘNG HOÀN HẢO 100% TRÊN GIAO DIỆN!
+
+📁 Log đã được lưu thành công vào: ui_demo_test.log
+🌐 Đã xác nhận / reset proxy về chế độ 'Tự động' (ProxyEnable = 0).

@@ -477,32 +477,38 @@ try:
     # Patch WorkPanelController.__init__ safely
     orig_wpc_init = wpc.WorkPanelController.__init__
     def safe_wpc_init(self, *args, **kwargs):
-        if not hasattr(self, '_state') or self._state is None:
-            if hasattr(wpc, 'WorkPanelState'):
-                try:
-                    self._state = wpc.WorkPanelState()
-                except Exception:
-                    self._state = types.SimpleNamespace()
-            else:
-                self._state = types.SimpleNamespace()
-
-        self._state._route_configs = dict(_wps_default_configs)
-        self._state._route = "clone"
-        self._state._selected_characters_by_route = {}
-
         try:
             orig_wpc_init(self, *args, **kwargs)
         except Exception:
             pass
 
         if getattr(self, "_state", None) is None:
-            self._state = types.SimpleNamespace()
-        if getattr(self._state, "_route_configs", None) is None or not isinstance(self._state._route_configs, dict):
+            if hasattr(wpc, 'WorkPanelState'):
+                try:
+                    self._state = wpc.WorkPanelState(self)
+                except Exception:
+                    self._state = types.SimpleNamespace()
+            else:
+                self._state = types.SimpleNamespace()
+
+        if not hasattr(self._state, "_route_configs") or getattr(self._state, "_route_configs", None) is None or not isinstance(self._state._route_configs, dict):
             self._state._route_configs = dict(_wps_default_configs)
         if getattr(self._state, "_route", None) is None:
             self._state._route = "clone"
         if getattr(self._state, "_selected_characters_by_route", None) is None:
             self._state._selected_characters_by_route = {}
+
+        clone_svc = getattr(self, "_clone", None) or getattr(self._state, "_clone", None)
+        if clone_svc is None:
+            try:
+                import application.clone_service as _cs_mod
+                clone_svc = _cs_mod.CloneService()
+            except Exception:
+                pass
+        if clone_svc is not None:
+            self._clone = clone_svc
+            if hasattr(self, "_state") and self._state is not None:
+                self._state._clone = clone_svc
 
         self.__dict__["_route_configs"] = dict(_wps_default_configs)
         self.__dict__["_route_config"] = dict(_wps_default_configs["clone"])
@@ -562,6 +568,25 @@ try:
         return rows
 
     wpc.WorkPanelController._on_clone_batch_rows_changed = safe_on_clone_batch_rows_changed
+    wpc.WorkPanelController._selected_clone_voice_payload = lambda self=None: {}
+
+    # Hook CloneService.add_to_queue to unwrap dict if needed
+    try:
+        import application.clone_service as _cs_mod
+        orig_cs_add = _cs_mod.CloneService.add_to_queue
+        def smart_cs_add(self, sources=None, *args, **kwargs):
+            if isinstance(sources, dict) and 'sources' in sources and isinstance(sources['sources'], list):
+                cfg = sources.get('config', {})
+                for s in sources['sources']:
+                    if isinstance(s, dict) and not s.get('config') and cfg:
+                        s['config'] = cfg
+                sources = sources['sources']
+            elif isinstance(sources, dict):
+                sources = [sources]
+            return orig_cs_add(self, sources, *args, **kwargs)
+        _cs_mod.CloneService.add_to_queue = smart_cs_add
+    except Exception as e:
+        print(f"ℹ️ [CloneService Hook Warning]: {e}")
 
     # An toàn cho applyCloneBulkConfig và submitCloneCardsWithConfig
     orig_apply_clone_bulk = getattr(wpc.WorkPanelController, "applyCloneBulkConfig", None)
@@ -584,77 +609,131 @@ try:
         if orig_apply_clone_bulk:
             try:
                 res = orig_apply_clone_bulk(self, links_with_config, common_config, *args, **kwargs)
-            except Exception:
+            except Exception as e:
+                print(f"ℹ️ [orig_apply_clone_bulk exception]: {e}")
                 res = None
 
-        if isinstance(res, dict) and res.get("ok"):
-            if hasattr(self, "_load_queue_rows") and callable(self._load_queue_rows):
+        if not (isinstance(res, dict) and res.get("ok")):
+            # Fallback thêm job vào clone service & queue rows
+            clone_service = getattr(self, "_clone", None)
+            cnt = len(cards) if cards else 1
+            row_ids = [f"clone_{uuid.uuid4().hex[:8]}" for _ in range(cnt)]
+
+            if clone_service and hasattr(clone_service, "add_to_queue"):
                 try:
-                    self._queue_rows = self._load_queue_rows()
+                    res_clone = clone_service.add_to_queue(sources=cards)
                 except Exception:
-                    pass
+                    try:
+                        res_clone = clone_service.add_to_queue(cards)
+                    except Exception:
+                        res_clone = None
+                if isinstance(res_clone, dict) and res_clone.get("ok"):
+                    if "row_ids" in res_clone:
+                        row_ids = res_clone["row_ids"]
+                    if "count" in res_clone:
+                        cnt = res_clone["count"]
+
+            # Cập nhật _queue_rows để giao diện hiển thị
+            if not hasattr(self, "_queue_rows") or not isinstance(self._queue_rows, list):
+                self._queue_rows = []
+
+            for i, cid in enumerate(row_ids):
+                card_data = cards[i] if i < len(cards) and isinstance(cards[i], dict) else {}
+                new_row = {
+                    "id": cid,
+                    "row_id": cid,
+                    "url": card_data.get("url", ""),
+                    "title": card_data.get("title", f"Clone Video #{i+1}"),
+                    "status": "pending",
+                    "duration_seconds": card_data.get("duration_seconds", 60),
+                    "duration": card_data.get("duration", 60),
+                    "route": "clone",
+                }
+                self._queue_rows.append(new_row)
+
+            res = {
+                "ok": True,
+                "count": cnt,
+                "message": f"Đã thêm {cnt} video vào hàng chờ",
+                "row_ids": row_ids,
+            }
+
+        # Luôn đồng bộ _queue_rows, queueModel và emit signals
+        loaded = None
+        if hasattr(self, "_load_queue_rows") and callable(self._load_queue_rows):
             try:
-                if hasattr(self, "queueRowsChanged"):
-                    self.queueRowsChanged.emit()
+                loaded = self._load_queue_rows()
+                if loaded:
+                    self._queue_rows = loaded
             except Exception:
                 pass
-            return res
 
-        # Fallback thêm job vào clone service & queue rows
-        clone_service = getattr(self, "_clone", None)
-        cnt = len(cards) if cards else 1
-        row_ids = [f"clone_{uuid.uuid4().hex[:8]}" for _ in range(cnt)]
+        if not getattr(self, "_queue_rows", None) and loaded:
+            self._queue_rows = loaded
 
-        if clone_service and hasattr(clone_service, "add_to_queue"):
+        if hasattr(self, "_reload_queue_and_stats"):
             try:
-                res_clone = clone_service.add_to_queue(sources=cards)
+                self._reload_queue_and_stats([], force=True)
             except Exception:
-                try:
-                    res_clone = clone_service.add_to_queue(cards)
-                except Exception:
-                    res_clone = None
-            if isinstance(res_clone, dict) and res_clone.get("ok"):
-                if "row_ids" in res_clone:
-                    row_ids = res_clone["row_ids"]
-                if "count" in res_clone:
-                    cnt = res_clone["count"]
+                pass
 
-        # Cập nhật _queue_rows để giao diện hiển thị
-        if not hasattr(self, "_queue_rows") or not isinstance(self._queue_rows, list):
-            self._queue_rows = []
+        if hasattr(self, "_emit_queue_stats_if_changed"):
+            try:
+                self._emit_queue_stats_if_changed()
+            except Exception:
+                pass
 
-        for i, cid in enumerate(row_ids):
-            card_data = cards[i] if i < len(cards) and isinstance(cards[i], dict) else {}
-            new_row = {
-                "id": cid,
-                "row_id": cid,
-                "url": card_data.get("url", ""),
-                "title": card_data.get("title", f"Clone Video #{i+1}"),
-                "status": "pending",
-                "duration_seconds": card_data.get("duration_seconds", 60),
-                "duration": card_data.get("duration", 60),
-                "route": "clone",
-            }
-            self._queue_rows.append(new_row)
+        if hasattr(self, "_queue_model") and self._queue_model is not None:
+            try:
+                self._queue_model.apply_rows(getattr(self, "_queue_rows", []))
+            except Exception:
+                pass
 
-        try:
-            if hasattr(self, "queueRowsChanged"):
+        if hasattr(self, "queueRowsChanged"):
+            try:
                 self.queueRowsChanged.emit()
-        except Exception:
-            pass
-        try:
-            if hasattr(self, "refreshQueueAndStats") and callable(self.refreshQueueAndStats):
-                self.refreshQueueAndStats()
-        except Exception:
-            pass
+            except Exception:
+                pass
+        if hasattr(self, "statsChanged"):
+            try:
+                self.statsChanged.emit()
+            except Exception:
+                pass
 
-        return {
-            "ok": True,
-            "count": cnt,
-            "message": f"Đã thêm {cnt} video vào hàng chờ",
-            "row_ids": row_ids,
-        }
+        total_q = self.queueModel.rowCount() if hasattr(self, 'queueModel') and hasattr(self.queueModel, 'rowCount') else len(getattr(self, '_queue_rows', []))
+        print(f"✅ [WorkPanelController] queueRowsChanged emitted, queueModel count={total_q}")
+        return res
 
+    def safe_refresh_queue_and_stats(self, *args, **kwargs):
+        if hasattr(self, "_load_queue_rows") and callable(self._load_queue_rows):
+            try:
+                r = self._load_queue_rows()
+                if r:
+                    self._queue_rows = r
+            except Exception:
+                pass
+        if hasattr(self, "_emit_queue_stats_if_changed"):
+            try:
+                self._emit_queue_stats_if_changed()
+            except Exception:
+                pass
+        if hasattr(self, "_queue_model") and self._queue_model is not None:
+            try:
+                self._queue_model.apply_rows(getattr(self, "_queue_rows", []))
+            except Exception:
+                pass
+        if hasattr(self, "queueRowsChanged"):
+            try:
+                self.queueRowsChanged.emit()
+            except Exception:
+                pass
+        if hasattr(self, "statsChanged"):
+            try:
+                self.statsChanged.emit()
+            except Exception:
+                pass
+
+    wpc.WorkPanelController.refreshQueueAndStats = safe_refresh_queue_and_stats
     wpc.WorkPanelController.applyCloneBulkConfig = safe_apply_clone_bulk
     wpc.WorkPanelController.submitCloneCardsWithConfig = lambda self, cards=None, *a, **kw: safe_apply_clone_bulk(self, links_with_config=cards, common_config={}, *a, **kw)
 

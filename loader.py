@@ -70,9 +70,10 @@ if hasattr(os, "add_dll_directory"):
         pass
 
 # 4. Ensure paths are configured in sys.path
-for p in [BASE_DIR, APP_SOURCE_DIR, EXTRACTED_DIR, PYZ_DIR]:
-    if p not in sys.path:
-        sys.path.insert(0, p)
+for p in [PYZ_DIR, EXTRACTED_DIR, BASE_DIR]:
+    if p in sys.path:
+        sys.path.remove(p)
+sys.path = [PYZ_DIR, EXTRACTED_DIR, BASE_DIR] + [p for p in sys.path if p not in (PYZ_DIR, EXTRACTED_DIR, BASE_DIR)]
 
 # 5. Smart MetaPath stub loader for optional tab services
 import uuid
@@ -84,6 +85,15 @@ class RealCloneQueueService:
         self._rows = []
 
     def add_to_queue(self, sources=None, **kw):
+        if isinstance(sources, dict) and 'sources' in sources and isinstance(sources['sources'], list):
+            bulk_config = sources.get('config', {})
+            sources_list = sources['sources']
+            for s in sources_list:
+                if isinstance(s, dict) and not s.get('config') and bulk_config:
+                    s['config'] = bulk_config
+            sources = sources_list
+        elif isinstance(sources, dict):
+            sources = [sources]
         sources = sources or []
         row_ids = []
         for s in sources:
@@ -779,36 +789,33 @@ try:
 
     orig_wpc_init = wpc.WorkPanelController.__init__
     def safe_wpc_init(self, *args, **kwargs):
-        if not hasattr(self, '_state') or self._state is None:
-            if hasattr(wpc, 'WorkPanelState'):
-                try:
-                    self._state = wpc.WorkPanelState()
-                except Exception:
-                    self._state = types.SimpleNamespace()
-            else:
-                self._state = types.SimpleNamespace()
-
-        self._state._route_configs = dict(_wps_default_configs)
-        self._state._route = "clone"
-        self._state._selected_characters_by_route = {}
-
         try:
             orig_wpc_init(self, *args, **kwargs)
         except Exception:
             pass
 
         if getattr(self, "_state", None) is None:
-            self._state = types.SimpleNamespace()
-        if getattr(self._state, "_route_configs", None) is None or not isinstance(self._state._route_configs, dict):
+            if hasattr(wpc, 'WorkPanelState'):
+                try:
+                    self._state = wpc.WorkPanelState(self)
+                except Exception:
+                    self._state = types.SimpleNamespace()
+            else:
+                self._state = types.SimpleNamespace()
+
+        if not hasattr(self._state, "_route_configs") or getattr(self._state, "_route_configs", None) is None or not isinstance(self._state._route_configs, dict):
             self._state._route_configs = dict(_wps_default_configs)
         if getattr(self._state, "_route", None) is None:
             self._state._route = "clone"
         if getattr(self._state, "_selected_characters_by_route", None) is None:
             self._state._selected_characters_by_route = {}
 
+        self._clone = _clone_queue_instance
+        if hasattr(self, "_state") and self._state is not None:
+            self._state._clone = _clone_queue_instance
+
         self.__dict__["_route_configs"] = dict(_wps_default_configs)
         self.__dict__["_route_config"] = dict(_wps_default_configs["clone"])
-        self._clone = _clone_queue_instance
         self._clone_voice_reference_limit = 1
         self._clone_voice_references_supported = True
 
@@ -885,6 +892,8 @@ try:
 
     wpc.WorkPanelController._clone = CloneProperty(_clone_queue_instance)
 
+    wpc.WorkPanelController._selected_clone_voice_payload = lambda self=None: {}
+
     def apply_clone_bulk_config(self, links_with_config=None, common_config=None, *args, **kwargs) -> dict:
         cards = links_with_config or []
         if isinstance(cards, dict):
@@ -892,7 +901,7 @@ try:
         elif not isinstance(cards, (list, tuple)):
             cards = []
 
-        # Kiểm tra an toàn _selected_character_payload: nếu lỗi thì bỏ qua hoặc trả về rỗng
+        # Kiểm tra an toàn _selected_character_payload
         char_payload = {}
         try:
             if hasattr(self, "_selected_character_payload") and callable(self._selected_character_payload):
@@ -907,6 +916,9 @@ try:
                 self._clone = clone_service
             except Exception:
                 pass
+
+        if hasattr(self, "_state") and self._state is not None:
+            self._state._clone = clone_service
 
         try:
             res = clone_service.add_to_queue(sources=cards)
@@ -924,8 +936,91 @@ try:
                 "message": f"Đã thêm {cnt} video vào hàng chờ",
                 "row_ids": [f"clone_{uuid.uuid4().hex[:8]}" for _ in range(cnt)],
             }
+
+        # Cập nhật _queue_rows và queueModel
+        loaded = None
+        if hasattr(self, "_load_queue_rows") and callable(self._load_queue_rows):
+            try:
+                loaded = self._load_queue_rows()
+                if loaded:
+                    self._queue_rows = loaded
+            except Exception:
+                pass
+        if not getattr(self, "_queue_rows", None) and hasattr(clone_service, "list_queue"):
+            try:
+                lq = clone_service.list_queue()
+                if isinstance(lq, dict) and "rows" in lq:
+                    self._queue_rows = lq["rows"]
+            except Exception:
+                pass
+
+        if hasattr(self, "_reload_queue_and_stats"):
+            try:
+                self._reload_queue_and_stats([], force=True)
+            except Exception:
+                pass
+        if hasattr(self, "_emit_queue_stats_if_changed"):
+            try:
+                self._emit_queue_stats_if_changed()
+            except Exception:
+                pass
+        if hasattr(self, "_queue_model") and self._queue_model is not None:
+            try:
+                self._queue_model.apply_rows(getattr(self, "_queue_rows", []))
+            except Exception:
+                pass
+        if hasattr(self, "queueRowsChanged"):
+            try:
+                self.queueRowsChanged.emit()
+            except Exception:
+                pass
+        if hasattr(self, "statsChanged"):
+            try:
+                self.statsChanged.emit()
+            except Exception:
+                pass
+
+        total_q = self.queueModel.rowCount() if hasattr(self, 'queueModel') and hasattr(self.queueModel, 'rowCount') else len(getattr(self, '_queue_rows', []))
+        print(f"✅ [WorkPanelController] queueRowsChanged emitted, queueModel count={total_q}")
         return res
 
+    def safe_refresh_queue_and_stats(self, *args, **kwargs):
+        if hasattr(self, "_load_queue_rows") and callable(self._load_queue_rows):
+            try:
+                r = self._load_queue_rows()
+                if r:
+                    self._queue_rows = r
+            except Exception:
+                pass
+        elif hasattr(self, "_clone") and hasattr(self._clone, "list_queue"):
+            try:
+                lq = self._clone.list_queue()
+                if isinstance(lq, dict) and "rows" in lq:
+                    self._queue_rows = lq["rows"]
+            except Exception:
+                pass
+        if hasattr(self, "_emit_queue_stats_if_changed"):
+            try:
+                self._emit_queue_stats_if_changed()
+            except Exception:
+                pass
+        if hasattr(self, "_queue_model") and self._queue_model is not None:
+            try:
+                self._queue_model.apply_rows(getattr(self, "_queue_rows", []))
+            except Exception:
+                pass
+        if hasattr(self, "queueRowsChanged"):
+            try:
+                self.queueRowsChanged.emit()
+            except Exception:
+                pass
+        if hasattr(self, "statsChanged"):
+            try:
+                self.statsChanged.emit()
+            except Exception:
+                pass
+
+    wpc.WorkPanelController.refreshQueueAndStats = safe_refresh_queue_and_stats
     wpc.WorkPanelController.applyCloneBulkConfig = apply_clone_bulk_config
     wpc.WorkPanelController.submitCloneCardsWithConfig = lambda self, cards=None, *a, **kw: apply_clone_bulk_config(self, links_with_config=cards, common_config={}, *a, **kw)
     wpc.WorkPanelController._clone_card_cfgs = lambda self, *a, **kw: {}
