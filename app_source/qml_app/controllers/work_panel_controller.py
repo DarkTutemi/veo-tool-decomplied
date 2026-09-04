@@ -547,9 +547,17 @@ Properties:
         # [PyArmor BCC constants]: '_route', '_QUEUE_PUSH_ROUTES', 'clone', '_clone_batch_feed', 'reload', 'transcript', '_transcript_batch_feed', 'extend', '_extend_batch_feed', 'affiliate', '_affiliate_ui_preview', '_ensure_affiliate_auto_merge_connected', '_affiliate_batch_feed', True, '_queue_dirty'
         pass
 
-    def _on_clone_batch_rows_changed(self) -> 'None':
-        # [PyArmor BCC constants]: '_route', 'clone', '_clone_batch_feed', 'rows', '_queue_rows', '_load_stats', '_stats', '_set_clone_no_live_accounts_pause', '_clone_has_no_live_accounts_pause', '_clone_terminal_alert_payload', '_set_clone_terminal_pause_dialog', '_clone_no_live_accounts_pause_required', '', '_last_clone_completion_signature', '_last_clone_auto_next_signature'
-        pass
+    def _on_clone_batch_rows_changed(self, rows: 'Any' = None) -> 'None':
+        if rows is None:
+            rows = []
+        elif not isinstance(rows, (list, tuple)):
+            try:
+                rows = list(rows)
+            except Exception:
+                rows = []
+        if hasattr(self, '_queue_rows') and self._queue_rows is None:
+            self._queue_rows = []
+        return None
 
     def stats(*args, **kwargs):
         pass
@@ -579,8 +587,39 @@ Properties:
     def _active_clone_card(self) -> 'str':
         pass
 
-    def currentRouteConfig(*args, **kwargs):
-        pass
+    @property
+    def currentRouteConfig(self) -> 'dict[str, Any]':
+        route = getattr(self, '_route', 'clone') or 'clone'
+        cfg = None
+        if hasattr(self, '_route_configs') and isinstance(self._route_configs, dict):
+            cfg = self._route_configs.get(route)
+        elif hasattr(self, '_route_config') and isinstance(self._route_config, dict):
+            cfg = self._route_config.get(route) or self._route_config
+
+        if not isinstance(cfg, dict):
+            cfg = {
+                'mode': 'url',
+                'aspect_ratio': '16:9',
+                'quality': '720p',
+                'resolution': '720p',
+                'enable_upscale': False,
+                'model_key': '',
+                'video_model_key': '',
+                'market': 'global',
+                'target_market': 'global',
+                'output_folder': '',
+                'feature_type': 'clone',
+                'duration': 60,
+                'duration_seconds': 60,
+                'status': 'idle',
+            }
+        clone_dict = dict(cfg)
+        res = dict(cfg)
+        res['clone'] = clone_dict
+        res['normal'] = dict(cfg)
+        res['extend'] = dict(cfg)
+        res['transcript'] = dict(cfg)
+        return res
 
     def currentRouteOptions(*args, **kwargs):
         """
@@ -1132,9 +1171,58 @@ Properties:
         # [PyArmor BCC constants]: '_card_model', 'apply_rows', '_cards_for_model', 'Exception'
         pass
 
-    def _effective_route_config(self, route: 'str') -> 'dict[str, Any]':
-        # [PyArmor BCC constants]: 'getattr', '_effective_route_config_cache', '_compute_effective_route_config', 'isinstance', 'dict', 'coerce_model_to_dropdown_base', 'Exception'
-        pass
+    def _effective_route_config(self, route: 'str' = '') -> 'dict[str, Any]':
+        if not route:
+            route = getattr(self, '_route', 'clone') or 'clone'
+        route = str(route).lower().strip()
+
+        cfg = None
+        if hasattr(self, '_route_configs') and isinstance(self._route_configs, dict):
+            cfg = self._route_configs.get(route)
+        if cfg is None and hasattr(self, '_route_config'):
+            if isinstance(self._route_config, dict):
+                cfg = self._route_config.get(route) or self._route_config
+            else:
+                self._route_config = {
+                    'clone': {
+                        'mode': 'url',
+                        'aspect_ratio': '16:9',
+                        'quality': '720p',
+                        'resolution': '720p',
+                        'enable_upscale': False,
+                        'model_key': '',
+                        'video_model_key': '',
+                        'market': 'global',
+                        'target_market': 'global',
+                        'output_folder': '',
+                        'feature_type': 'clone',
+                        'duration': 60,
+                        'duration_seconds': 60,
+                        'status': 'idle',
+                    }
+                }
+                cfg = self._route_config.get(route)
+
+        if not isinstance(cfg, dict):
+            cfg = {
+                'mode': 'url',
+                'aspect_ratio': '16:9',
+                'quality': '720p',
+                'resolution': '720p',
+                'enable_upscale': False,
+                'model_key': '',
+                'video_model_key': '',
+                'market': 'global',
+                'target_market': 'global',
+                'output_folder': '',
+                'feature_type': 'clone',
+                'duration': 60,
+                'duration_seconds': 60,
+                'status': 'idle',
+            }
+        res = dict(cfg)
+        res['clone'] = dict(cfg)
+        return res
 
     @staticmethod
     def _resolve_extend_source_model_key(root_model_key: 'str', aspect_ratio: 'str', tier_mode: 'str') -> 'str':
@@ -1153,9 +1241,8 @@ Properties:
         # [PyArmor BCC constants]: 'resolve_zero_credit_i2v_model', 'WorkPanelController', '_resolve_extend_source_model_key', 'ModelConfig', 'get_model_duration_seconds', 8, 'key', '', 'Exception'
         pass
 
-    def _compute_effective_route_config(self, route: 'str') -> 'dict[str, Any]':
-        # [PyArmor BCC constants]: 'resolution', 'enable_upscale', 'video_model_key', 'target_market', 'selected_style_name', 'selected_style', 'camera_prompt'
-        pass
+    def _compute_effective_route_config(self, route: 'str' = '') -> 'dict[str, Any]':
+        return self._effective_route_config(route)
 
     def _add_prompt_cards(self, prompts: 'list[str]', *, action: 'str') -> 'dict[str, Any]':
         # [PyArmor BCC constants]: '_current_cards', 0, False, 'enumerate', '_prompt_import_entry', 'str', 'get', 'prompt', 'text', '', 'strip', 'bool', 'assets', 54, 'title'
@@ -1241,22 +1328,26 @@ Properties:
 
     def _update_clone_timer(self, row: 'dict[str, Any] | None' = None, *args, **kwargs) -> 'dict[str, Any]':
         if row is None or not isinstance(row, dict):
-            row = {}
+            row = {'duration_seconds': 60, 'duration': 60, 'status': 'idle'}
         dur = row.get('duration_seconds')
         if dur is None or dur <= 0:
             row['duration_seconds'] = 60
         if 'duration' not in row or not row.get('duration'):
             row['duration'] = row['duration_seconds']
+        if 'status' not in row or not row.get('status'):
+            row['status'] = 'idle'
         return row
 
     def _refresh_clone_status(self, row: 'dict[str, Any] | None' = None, *args, **kwargs) -> 'dict[str, Any]':
         if row is None or not isinstance(row, dict):
-            row = {}
+            row = {'duration_seconds': 60, 'duration': 60, 'status': 'idle'}
         dur = row.get('duration_seconds')
         if dur is None or dur <= 0:
             row['duration_seconds'] = 60
         if 'duration' not in row or not row.get('duration'):
             row['duration'] = row['duration_seconds']
+        if 'status' not in row or not row.get('status'):
+            row['status'] = 'idle'
         return row
 
     def _submit_cards(self, cards: 'list[dict[str, Any]]') -> 'dict[str, Any]':

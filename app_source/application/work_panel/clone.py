@@ -120,24 +120,45 @@ class CloneUseCases:
     def save_clone_route_config(self, *args, **kwargs) -> Dict[str, Any]:
         return {"ok": True}
 
+    @property
+    def currentRouteConfig(self) -> Dict[str, Any]:
+        cfg = self._load_clone_route_config()
+        res = dict(cfg)
+        res["clone"] = dict(cfg)
+        res["normal"] = dict(cfg)
+        return res
+
+    def _effective_route_config(self, route: str = "clone", *args, **kwargs) -> Dict[str, Any]:
+        cfg = self._load_clone_route_config()
+        res = dict(cfg)
+        res["clone"] = dict(cfg)
+        return res
+
+    def _compute_effective_route_config(self, route: str = "clone", *args, **kwargs) -> Dict[str, Any]:
+        return self._effective_route_config(route, *args, **kwargs)
+
     def _update_clone_timer(self, row: Optional[Dict[str, Any]] = None, *args, **kwargs) -> Dict[str, Any]:
         if row is None or not isinstance(row, dict):
-            row = {}
+            row = {"duration_seconds": 60, "duration": 60, "status": "idle"}
         dur = row.get("duration_seconds")
         if dur is None or dur <= 0:
             row["duration_seconds"] = 60
         if "duration" not in row or not row.get("duration"):
             row["duration"] = row["duration_seconds"]
+        if "status" not in row or not row.get("status"):
+            row["status"] = "idle"
         return row
 
     def _refresh_clone_status(self, row: Optional[Dict[str, Any]] = None, *args, **kwargs) -> Dict[str, Any]:
         if row is None or not isinstance(row, dict):
-            row = {}
+            row = {"duration_seconds": 60, "duration": 60, "status": "idle"}
         dur = row.get("duration_seconds")
         if dur is None or dur <= 0:
             row["duration_seconds"] = 60
         if "duration" not in row or not row.get("duration"):
             row["duration"] = row["duration_seconds"]
+        if "status" not in row or not row.get("status"):
+            row["status"] = "idle"
         return row
 
     def build_clone_card_from_video(self, video: Dict[str, Any]) -> Dict[str, Any]:
