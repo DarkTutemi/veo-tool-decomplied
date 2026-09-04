@@ -78,15 +78,35 @@ def main():
         wpc.queueRowsChanged.connect(lambda: signals_received.append("queueRowsChanged"))
     if hasattr(wpc, "statsChanged"):
         wpc.statsChanged.connect(lambda: signals_received.append("statsChanged"))
+    if hasattr(wpc, "queueCostChanged"):
+        wpc.queueCostChanged.connect(lambda: signals_received.append("queueCostChanged"))
 
     def step1():
-        print("\n--- [BƯỚC 1]: Chuyển đến tab 'Clone Video' ---")
+        print("\n--- [BƯỚC 1]: Chuyển đến tab 'Clone Video' & Kiểm tra cấu hình UI ---")
         if ac and hasattr(ac, "setRoute"):
             ac.setRoute("clone")
         if wpc and hasattr(wpc, "setRoute"):
             wpc.setRoute("clone")
         current_route = getattr(wpc, "route", None) or getattr(wpc, "_route", None)
         print(f"  • Route hiện tại của workPanelController: '{current_route}'")
+
+        cfg = getattr(wpc, "currentRouteConfig", {})
+        print(f"  • Cấu hình Clone Video (currentRouteConfig):")
+        print(f"    - Tỷ lệ khung hình (aspect_ratio)     : {cfg.get('aspect_ratio')}")
+        print(f"    - Chất lượng video (quality)          : {cfg.get('quality')}")
+        print(f"    - Thị trường đích (market)            : {cfg.get('market') or cfg.get('target_market')}")
+        print(f"    - Model video (video_model_key)       : {cfg.get('video_model_key') or cfg.get('model_key')}")
+        print(f"    - Style được chọn (selected_style_name): {cfg.get('selected_style_name')}")
+        print(f"    - Thư mục lưu (output_folder)         : {cfg.get('output_folder')}")
+        print(f"    - Độ dài clip (clip_duration_seconds) : {cfg.get('clip_duration_seconds')}s")
+        print(f"    - Ngôn ngữ (voice_language)           : {cfg.get('voice_language') or cfg.get('language')}")
+
+        assert cfg.get("aspect_ratio") == "16:9", "Lỗi: aspect_ratio không đúng!"
+        assert cfg.get("quality") == "720p", "Lỗi: quality không đúng!"
+        assert cfg.get("selected_style_name") == "Mặc định", "Lỗi: selected_style_name không đúng!"
+        assert cfg.get("video_model_key") == "veo-3.1-lite", "Lỗi: video_model_key không đúng!"
+        print("  ✅ Tất cả các trường cấu hình UI (Tỷ lệ, Chất lượng, Style, Model, v.v.) hiển thị CHÍNH XÁC!")
+
         QTimer.singleShot(800, step2)
 
     def step2():
@@ -109,7 +129,16 @@ def main():
         QTimer.singleShot(800, lambda: step3(card))
 
     def step3(card):
-        print("\n--- [BƯỚC 3]: Dialog 'Xác nhận trước khi tạo video' xuất hiện ---")
+        print("\n--- [BƯỚC 3]: Dialog 'Xác nhận trước khi tạo video' xuất hiện & Tính chi phí ---")
+        # Giả lập QML gọi requestQueueCost('clone') khi mở dialog
+        if hasattr(wpc, "requestQueueCost"):
+            wpc.requestQueueCost("clone")
+        cost = getattr(wpc, "queueCost", {})
+        print(f"  • Trạng thái chi phí (queueCost): status='{cost.get('status')}', count={cost.get('count')}, unit='{cost.get('billing_unit')}', total={cost.get('total_cost')}")
+        print(f"  • Chi tiết từng video (items): {cost.get('items')}")
+        assert cost.get("status") == "ready", "Lỗi: queueCost chưa ở trạng thái 'ready'!"
+        print("  ✅ Chi phí ước tính đã tính toán xong (trạng thái 'ready', KHÔNG bị treo 'Đang tính chi phí...')!")
+
         print("  • Bấm nút 'Vào hàng chờ' (submitCloneCardsWithConfig)...")
         res = wpc.submitCloneCardsWithConfig([card])
         print(f"  • Kết quả submit: ok={res.get('ok')}, count={res.get('count')}, message='{res.get('message')}'")

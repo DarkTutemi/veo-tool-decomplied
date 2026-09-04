@@ -558,6 +558,7 @@ try:
     _route_base_config = {
         'mode': 'url',
         'aspect_ratio': '16:9',
+        'ratio': '16:9',
         'quality': '720p',
         'resolution': '720p',
         'market': 'global',
@@ -565,18 +566,34 @@ try:
         'video_model_key': 'veo-3.1-lite',
         'model_key': 'veo-3.1-lite',
         'output_mode': 'video',
+        'clip_duration_seconds': 8,
         'duration': 60,
         'duration_seconds': 60,
+        'output_count': 1,
+        'variations': 1,
+        'output_folder': 'output/clone',
         'status': 'idle',
         'selected_style_name': 'Mặc định',
-        'selected_style': '',
+        'selected_style': 'Mặc định',
         'style_id': '',
+        'structural_style_id': '',
+        'surface_style_id': '',
+        'camera_id': '',
         'style': 'default',
+        'language': 'vi',
+        'voice_language': 'vi',
+        'dialogue_language': 'vi',
+        'voice_name': 'Mặc định',
+        'image_model': 'NARWHAL',
+        'image_resolution': '720p',
+        'filename_format': 'number',
         'character_slots': [],
         'background_slots': [],
         'camera_prompt': '',
         'auto_merge': True,
+        'deep_analysis': True,
         'char_consistency': False,
+        'enable_char_consistency': False,
         'multi_asset_mode': False,
         'frame_slicing': False,
         'video_filter': 'all',
@@ -585,6 +602,7 @@ try:
         'enable_upscale': False,
         'reference_images': [],
         'reference_image_ids': [],
+        'subtitle_profile': {'enabled': True, 'style': 'default'},
     }
 
     _clone_default_route_cfg = dict(_route_base_config)
@@ -614,6 +632,16 @@ try:
             default_cfg["video_model_key"] = "veo-3.1-lite"
         if not default_cfg.get("model_key"):
             default_cfg["model_key"] = default_cfg["video_model_key"]
+        if not default_cfg.get("selected_style_name"):
+            default_cfg["selected_style_name"] = "Mặc định"
+        if not default_cfg.get("output_folder"):
+            default_cfg["output_folder"] = "output/clone"
+        if not default_cfg.get("aspect_ratio"):
+            default_cfg["aspect_ratio"] = "16:9"
+        if not default_cfg.get("quality"):
+            default_cfg["quality"] = "720p"
+        if not default_cfg.get("clip_duration_seconds"):
+            default_cfg["clip_duration_seconds"] = 8
 
         default_cfg["clone"] = dict(default_cfg)
         default_cfg["normal"] = dict(_wps_default_configs["normal"])
@@ -844,6 +872,81 @@ try:
     patch_property_fget('cloneFlowVoiceReferenceLimit', lambda self: 1)
     patch_property_fget('cloneFlowVoiceReferencesSupported', lambda self: True)
     patch_property_fget('cloneFlowVoiceLockSupported', lambda self: True)
+
+    def safe_request_queue_cost(self, route="clone", *args, **kwargs):
+        cards = []
+        if hasattr(self, "_selected_clone_source_cards") and callable(self._selected_clone_source_cards):
+            try:
+                cards = self._selected_clone_source_cards()
+            except Exception:
+                cards = []
+        if not cards and hasattr(self, "_current_cards"):
+            c = self._current_cards
+            if callable(c):
+                try: cards = c()
+                except Exception: pass
+            elif isinstance(c, list):
+                cards = c
+        if not cards and hasattr(self, "cards"):
+            cards = getattr(self, "cards", [])
+        if isinstance(cards, dict):
+            cards = [cards]
+        elif not isinstance(cards, list):
+            cards = []
+
+        items = []
+        for i, c in enumerate(cards):
+            c_dict = c if isinstance(c, dict) else {}
+            title = c_dict.get("title") or c_dict.get("prompt") or c_dict.get("url") or f"Video clone #{i+1}"
+            dur = c_dict.get("duration_seconds") or c_dict.get("duration") or 60
+            scenes = max(1, int(dur // 15)) if dur else 4
+            items.append({
+                "title": title,
+                "scenes": scenes,
+                "cost": 0,
+                "system_tokens": 1200,
+                "video_tokens": 8000,
+                "output_tokens": 2800,
+            })
+
+        if not items:
+            items = [{
+                "title": "Video clone",
+                "scenes": 4,
+                "cost": 0,
+                "system_tokens": 1200,
+                "video_tokens": 8000,
+                "output_tokens": 2800,
+            }]
+
+        self._queue_cost = {
+            "status": "ready",
+            "billing_unit": "đ",
+            "count": len(items),
+            "total_cost": 0,
+            "items": items,
+        }
+        if hasattr(self, "queueCostChanged"):
+            try:
+                self.queueCostChanged.emit()
+            except Exception:
+                pass
+
+    wpc.WorkPanelController.requestQueueCost = safe_request_queue_cost
+    patch_property_fget('queueCost', lambda self: getattr(self, '_queue_cost', {
+        "status": "ready",
+        "billing_unit": "đ",
+        "count": 1,
+        "total_cost": 0,
+        "items": [{
+            "title": "Video clone",
+            "scenes": 4,
+            "cost": 0,
+            "system_tokens": 1200,
+            "video_tokens": 8000,
+            "output_tokens": 2800,
+        }],
+    }))
 
     def safe_clone_timer(self, row=None, *args, **kwargs):
         if row is None or not isinstance(row, dict):

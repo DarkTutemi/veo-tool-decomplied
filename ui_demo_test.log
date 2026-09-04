@@ -16,24 +16,36 @@ SQLite Accounts Store initialized: C:\Users\vutru\AppData\Roaming\VEO3_Generator
 🚀 InstantUpscaleManager V3 initialized (Signal Hub Mode)
 [OK] [ServerProxy] Configured: https://ai.veoflow.dev
 ✅ [AI_PROVIDER] ServerProxy ready (cached)
-✅ [AI_PROVIDER] AiStudio route enabled (account=account-6c00cb57ced2, transport=direct, mode=aistudio, gateway_fallback=False)
-[REAL REQUEST] Method: GET | URL: https://ai.veoflow.dev/v2/credits/balance | Headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer vfg_SNjWdnjJlTaTBeGFcqddn23-shckvPcS5fGPBSJsK98'} | Body: 
+✅ [AI_PROVIDER] AiStudio route enabled (account=account-8973734e5bbc, transport=direct, mode=aistudio, gateway_fallback=False)
+[REAL REQUEST] Method: GET | URL: https://ai.veoflow.dev/v2/credits/balance | Headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer vfg_9N-y5jiWRgyuSrBL_rprG-VNOyyEcC7Gat7djg_fULI'} | Body: 
 [YouTubeCloneService] __init__ started
 [YouTubeCloneService] Basic attributes set
 [YouTubeCloneService] __init__ completed
 [PERF] controller workPanelController init 0.5s
 [Perf] motion=ON (high): Cấu hình đạt chuẩn → giữ đầy đủ hiệu ứng | cores=36 gpu=NVIDIA GeForce GTX 1050 Ti nvidia=True ram_gb=47.8 vram_gb=4.0 warp=False
 ✅ QML engine đã sẵn sàng!
-  • workPanelController: <qml_app.controllers.work_panel_controller.WorkPanelController(0x1f4e5363430) at 0x000001F49B32B740>
-  • appController: <qml_app.controllers.app_controller.AppController(0x1f4e566bb70) at 0x000001F497AF4640>
-[REAL RESPONSE] Status: 200 | Body: {"api_mode":"aistudio","available":50000,"balance":50000,"billing_unit":"vnd","consumed_month":103191.4234,"consumed_today":103191.4234,"consumed_total":103191.4234,"currency":"VND","free_balance":50000,"has_user_key":false,"paid_balance":0,"reserved":0,"usd_exchange_rate":26004}
+  • workPanelController: <qml_app.controllers.work_panel_controller.WorkPanelController(0x29929735ec0) at 0x0000029957940480>
+  • appController: <qml_app.controllers.app_controller.AppController(0x29929000810) at 0x000002995B10C140>
+[REAL RESPONSE] Status: 200 | Body: {"api_mode":"aistudio","available":50000,"balance":50000,"billing_unit":"vnd","consumed_month":103191.4234,"consumed_today":0,"consumed_total":103191.4234,"currency":"VND","free_balance":50000,"has_user_key":false,"paid_balance":0,"reserved":0,"usd_exchange_rate":26004}
 
 
-[REAL REQUEST] Method: GET | URL: https://api.veoflow.dev/v1/client/credits/usage-dashboard | Headers: {'Authorization': 'Bearer vfg_SNjWdnjJlTaTBeGFcqddn23-shckvPcS5fGPBSJsK98', 'Content-Type': 'application/json'} | Body: 
-⚠️ [Voice] hardware probe failed: deadlock detected by _ModuleLock('services.shared.tts.engines.omnivoice_config') at 2150141632416
+[REAL REQUEST] Method: GET | URL: https://api.veoflow.dev/v1/client/credits/usage-dashboard | Headers: {'Authorization': 'Bearer vfg_9N-y5jiWRgyuSrBL_rprG-VNOyyEcC7Gat7djg_fULI', 'Content-Type': 'application/json'} | Body: 
+[REAL RESPONSE] Status: 200 | Body: {"success":true,"data":{"history":[{"created_at":"2026-09-04 01:25:46","credits_used":5630.6169,"estimated_vnd":5630.6169,"feature":"image_story","id":194085,"input_tokens":14572,"license_key":"N62U-FQD8-XK5A-WQH6","model":"gemini-3.8-flash","output_tokens":21619,"source":"user_account","success":true,"tokens":36191},{"created_at":"2026-09-04 01:24:20","credits_used":689.398,"estimated_vnd":689.398,"feature":"image_story","id":194083,"input_tokens":13772,"license_key":"N62U-FQD8-XK5A-WQH6","mode
 
---- [BƯỚC 1]: Chuyển đến tab 'Clone Video' ---
+⚠️ [Voice] hardware probe failed: deadlock detected by _ModuleLock('services.shared.tts.engines.omnivoice_config') at 2857794417536
+
+--- [BƯỚC 1]: Chuyển đến tab 'Clone Video' & Kiểm tra cấu hình UI ---
   • Route hiện tại của workPanelController: 'clone'
+  • Cấu hình Clone Video (currentRouteConfig):
+    - Tỷ lệ khung hình (aspect_ratio)     : 16:9
+    - Chất lượng video (quality)          : 720p
+    - Thị trường đích (market)            : global
+    - Model video (video_model_key)       : veo-3.1-lite
+    - Style được chọn (selected_style_name): Mặc định
+    - Thư mục lưu (output_folder)         : output/clone
+    - Độ dài clip (clip_duration_seconds) : 8s
+    - Ngôn ngữ (voice_language)           : vi
+  ✅ Tất cả các trường cấu hình UI (Tỷ lệ, Chất lượng, Style, Model, v.v.) hiển thị CHÍNH XÁC!
 
 --- [BƯỚC 2]: Dán link YouTube và bấm 'Thêm vào danh sách công việc' ---
   • Dán link YouTube: https://www.youtube.com/watch?v=t8Gl7tf8Sfo
@@ -42,15 +54,16 @@ SQLite Accounts Store initialized: C:\Users\vutru\AppData\Roaming\VEO3_Generator
     - URL: https://www.youtube.com/watch?v=t8Gl7tf8Sfo
     - Thời lượng: 60 giây
 
---- [BƯỚC 3]: Dialog 'Xác nhận trước khi tạo video' xuất hiện ---
+--- [BƯỚC 3]: Dialog 'Xác nhận trước khi tạo video' xuất hiện & Tính chi phí ---
+  • Trạng thái chi phí (queueCost): status='ready', count=1, unit='đ', total=0
+  • Chi tiết từng video (items): [{'title': 'Video clone', 'scenes': 4, 'cost': 0, 'system_tokens': 1200, 'video_tokens': 8000, 'output_tokens': 2800}]
+  ✅ Chi phí ước tính đã tính toán xong (trạng thái 'ready', KHÔNG bị treo 'Đang tính chi phí...')!
   • Bấm nút 'Vào hàng chờ' (submitCloneCardsWithConfig)...
 ✅ [WorkPanelController] queueRowsChanged emitted, queueModel count=1
   • Kết quả submit: ok=True, count=1, message='Đã thêm 1 link vào hàng chờ'
-[REAL RESPONSE] Status: 200 | Body: {"success":true,"data":{"history":[{"created_at":"2026-09-04 01:25:46","credits_used":5630.6169,"estimated_vnd":5630.6169,"feature":"image_story","id":194085,"input_tokens":14572,"license_key":"N62U-FQD8-XK5A-WQH6","model":"gemini-3.8-flash","output_tokens":21619,"source":"user_account","success":true,"tokens":36191},{"created_at":"2026-09-04 01:24:20","credits_used":689.398,"estimated_vnd":689.398,"feature":"image_story","id":194083,"input_tokens":13772,"license_key":"N62U-FQD8-XK5A-WQH6","mode
-
 
 --- [BƯỚC 4]: Kiểm tra danh sách hiển thị trên giao diện (QML Table / ListView) ---
-  • Tín hiệu QML nhận được: ['statsChanged', 'queueRowsChanged', 'statsChanged', 'queueRowsChanged', 'statsChanged']
+  • Tín hiệu QML nhận được: ['statsChanged', 'queueCostChanged', 'queueRowsChanged', 'statsChanged', 'queueRowsChanged', 'statsChanged']
   • Số lượng row trong workPanelController.queueModel: 1
   • Số lượng row trong workPanelController.queueRows: 1
 
