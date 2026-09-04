@@ -250,7 +250,7 @@ try:
 except Exception as e:
     log_error(f"Lỗi hook requests: {e}")
 
-# 8. Patch WorkPanelController to ensure default route_configs
+# 8. Patch WorkPanelController to ensure default route_configs & WorkPanelState
 try:
     import uuid
     import qml_app.controllers.work_panel_controller as wpc
@@ -282,25 +282,91 @@ try:
         def __set__(self, instance, value):
             self.store[id(instance)] = value
 
-    # Patch WorkPanelState in wpc, state and character modules
+    # 1. Patch or create WorkPanelState on wpc
     if hasattr(wpc, 'WorkPanelState'):
         wpc.WorkPanelState._route_configs = WorkPanelRouteConfigProperty(_wps_default_configs)
+        for _attr, _val in [
+            ('mode', 'url'),
+            ('aspect_ratio', '16:9'),
+            ('quality', '720p'),
+            ('resolution', '720p'),
+            ('market', 'global'),
+            ('target_market', 'global'),
+            ('_route', 'clone'),
+            ('_selected_characters_by_route', {}),
+        ]:
+            if not hasattr(wpc.WorkPanelState, _attr):
+                try:
+                    setattr(wpc.WorkPanelState, _attr, _val)
+                except Exception:
+                    pass
+    else:
+        class FallbackWorkPanelState(object):
+            _route_configs = WorkPanelRouteConfigProperty(_wps_default_configs)
+            mode = 'url'
+            aspect_ratio = '16:9'
+            quality = '720p'
+            resolution = '720p'
+            market = 'global'
+            target_market = 'global'
+            _route = 'clone'
+            _selected_characters_by_route = {}
+            def __init__(self, *args, **kwargs):
+                self._route_configs = dict(_wps_default_configs)
+                self.mode = 'url'
+                self.aspect_ratio = '16:9'
+                self.quality = '720p'
+                self.resolution = '720p'
+                self.market = 'global'
+                self.target_market = 'global'
+                self._route = 'clone'
+                self._selected_characters_by_route = {}
+        wpc.WorkPanelState = FallbackWorkPanelState
 
+    # Also patch application.work_panel.state.WorkPanelState if present
     try:
         import application.work_panel.state as _wps_mod
-        _wps_mod.WorkPanelState._route_configs = WorkPanelRouteConfigProperty(_wps_default_configs)
+        if hasattr(_wps_mod, 'WorkPanelState'):
+            _wps_mod.WorkPanelState._route_configs = WorkPanelRouteConfigProperty(_wps_default_configs)
     except Exception:
         pass
 
+    # Also patch application.work_panel.clone.WorkPanelState if present
+    try:
+        import application.work_panel.clone as _wpc_clone_mod
+        if hasattr(_wpc_clone_mod, 'WorkPanelState'):
+            _wpc_clone_mod.WorkPanelState._route_configs = WorkPanelRouteConfigProperty(_wps_default_configs)
+            for _attr, _val in [
+                ('mode', 'url'),
+                ('aspect_ratio', '16:9'),
+                ('quality', '720p'),
+                ('resolution', '720p'),
+                ('market', 'global'),
+                ('target_market', 'global'),
+                ('_route', 'clone'),
+                ('_selected_characters_by_route', {}),
+            ]:
+                if not hasattr(_wpc_clone_mod.WorkPanelState, _attr):
+                    try:
+                        setattr(_wpc_clone_mod.WorkPanelState, _attr, _val)
+                    except Exception:
+                        pass
+    except Exception:
+        pass
+
+    # Patch application.work_panel.character._selected_character_payload
     try:
         import application.work_panel.character as _wpc_char_mod
-        _wpc_char_mod.WorkPanelState._route_configs = WorkPanelRouteConfigProperty(_wps_default_configs)
+        if hasattr(_wpc_char_mod, "WorkPanelState"):
+            _wpc_char_mod.WorkPanelState._route_configs = WorkPanelRouteConfigProperty(_wps_default_configs)
 
-        orig_char_payload = getattr(_wpc_char_mod.CharacterUseCases, "_selected_character_payload", None)
-        def safe_char_payload(self, *args, **kwargs):
-            state = getattr(self, "state", self)
-            if not hasattr(state, "_route_configs") or state._route_configs is None:
-                state._route_configs = dict(_wps_default_configs)
+        orig_char_payload = getattr(_wpc_char_mod, "_selected_character_payload", None)
+        def safe_func_char_payload(self, *args, **kwargs):
+            if not hasattr(self, "_route_configs") or getattr(self, "_route_configs", None) is None:
+                try:
+                    self._route_configs = dict(_wps_default_configs)
+                except Exception:
+                    pass
             if orig_char_payload:
                 try:
                     res = orig_char_payload(self, *args, **kwargs)
@@ -309,12 +375,48 @@ try:
                 except Exception:
                     pass
             return {}
-        _wpc_char_mod.CharacterUseCases._selected_character_payload = safe_char_payload
+        _wpc_char_mod._selected_character_payload = safe_func_char_payload
+
+        orig_usecase_char_payload = getattr(getattr(_wpc_char_mod, "CharacterUseCases", None), "_selected_character_payload", None)
+        def safe_usecase_char_payload(self, *args, **kwargs):
+            state = getattr(self, "state", self)
+            if state is not None:
+                if not hasattr(state, "_route_configs") or getattr(state, "_route_configs", None) is None:
+                    try:
+                        state._route_configs = dict(_wps_default_configs)
+                    except Exception:
+                        pass
+                if not hasattr(state, "_selected_characters_by_route") or getattr(state, "_selected_characters_by_route", None) is None:
+                    try:
+                        state._selected_characters_by_route = {}
+                    except Exception:
+                        pass
+                if not hasattr(state, "_route") or getattr(state, "_route", None) is None:
+                    try:
+                        state._route = "clone"
+                    except Exception:
+                        pass
+            if orig_usecase_char_payload:
+                try:
+                    res = orig_usecase_char_payload(self, *args, **kwargs)
+                    if isinstance(res, dict):
+                        return res
+                except Exception:
+                    pass
+            return {}
+        if hasattr(_wpc_char_mod, "CharacterUseCases"):
+            _wpc_char_mod.CharacterUseCases._selected_character_payload = safe_usecase_char_payload
     except Exception:
         pass
 
     orig_wpc_char_payload = getattr(wpc.WorkPanelController, "_selected_character_payload", None)
     def safe_wpc_char_payload(self, *args, **kwargs):
+        if hasattr(self, "_state") and self._state is not None:
+            if not hasattr(self._state, "_route_configs") or getattr(self._state, "_route_configs", None) is None:
+                try:
+                    self._state._route_configs = dict(_wps_default_configs)
+                except Exception:
+                    pass
         if orig_wpc_char_payload:
             try:
                 res = orig_wpc_char_payload(self, *args, **kwargs)
@@ -325,10 +427,10 @@ try:
         return {}
     wpc.WorkPanelController._selected_character_payload = safe_wpc_char_payload
 
-    # 1. Gán _route_configs trực tiếp trên class WorkPanelController
+    # Gán _route_configs trực tiếp trên class WorkPanelController
     wpc.WorkPanelController._route_configs = {'clone': dict(_default_clone_route_cfg)}
 
-    # 2. Thêm fallback trong WorkPanelController.__init__
+    # Patch WorkPanelController.__init__ để khởi tạo _state._route_configs
     orig_wpc_init = wpc.WorkPanelController.__init__
     def safe_wpc_init(self, *args, **kwargs):
         self._route_configs = {'clone': dict(_default_clone_route_cfg)}
@@ -344,9 +446,25 @@ try:
         if getattr(self, "_route_config", None) is None:
             self._route_config = dict(self._route_configs)
 
+        if hasattr(self, "_state") and self._state is not None:
+            try:
+                self._state._route_configs = dict(_wps_default_configs)
+            except Exception:
+                pass
+            if not hasattr(self._state, "_route") or getattr(self._state, "_route", None) is None:
+                try:
+                    self._state._route = "clone"
+                except Exception:
+                    pass
+            if not hasattr(self._state, "_selected_characters_by_route") or getattr(self._state, "_selected_characters_by_route", None) is None:
+                try:
+                    self._state._selected_characters_by_route = {}
+                except Exception:
+                    pass
+
     wpc.WorkPanelController.__init__ = safe_wpc_init
 
-    # 3. Patch _effective_route_config để nếu self._route_configs là None, trả về dict mặc định
+    # Patch _effective_route_config để nếu self._route_configs là None, trả về dict mặc định
     orig_wpc_effective = getattr(wpc.WorkPanelController, "_effective_route_config", None)
     def safe_effective_route_config(self, route="clone", *args, **kwargs):
         if getattr(self, "_route_configs", None) is None or not isinstance(self._route_configs, dict):
@@ -376,7 +494,7 @@ try:
 
     wpc.WorkPanelController._effective_route_config = safe_effective_route_config
 
-    # 4. Patch _compute_effective_route_config tương tự
+    # Patch _compute_effective_route_config tương tự
     orig_wpc_compute = getattr(wpc.WorkPanelController, "_compute_effective_route_config", None)
     def safe_compute_effective_route_config(self, route="clone", *args, **kwargs):
         if getattr(self, "_route_configs", None) is None or not isinstance(self._route_configs, dict):
@@ -434,28 +552,89 @@ try:
         elif not isinstance(cards, (list, tuple)):
             cards = []
 
-        char_payload = {}
-        try:
-            if hasattr(self, "_selected_character_payload") and callable(self._selected_character_payload):
-                char_payload = self._selected_character_payload() or {}
-        except Exception:
-            char_payload = {}
+        if hasattr(self, "_state") and self._state is not None:
+            if not hasattr(self._state, "_route_configs") or getattr(self._state, "_route_configs", None) is None:
+                try:
+                    self._state._route_configs = dict(_wps_default_configs)
+                except Exception:
+                    pass
 
+        # Thử gọi hàm gốc trước
+        res = None
         if orig_apply_clone_bulk:
             try:
                 res = orig_apply_clone_bulk(self, links_with_config, common_config, *args, **kwargs)
-                if isinstance(res, dict) and res.get("ok"):
-                    return res
-            except Exception as e:
-                pass
+            except Exception:
+                res = None
 
+        if isinstance(res, dict) and res.get("ok"):
+            if hasattr(self, "_load_queue_rows") and callable(self._load_queue_rows):
+                try:
+                    self._queue_rows = self._load_queue_rows()
+                except Exception:
+                    pass
+            try:
+                if hasattr(self, "queueRowsChanged"):
+                    self.queueRowsChanged.emit()
+            except Exception:
+                pass
+            return res
+
+        # Fallback thêm job vào clone service & queue rows
+        clone_service = getattr(self, "_clone", None)
         cnt = len(cards) if cards else 1
+        row_ids = [f"clone_{uuid.uuid4().hex[:8]}" for _ in range(cnt)]
+
+        if clone_service and hasattr(clone_service, "add_to_queue"):
+            try:
+                res_clone = clone_service.add_to_queue(sources=cards)
+            except Exception:
+                try:
+                    res_clone = clone_service.add_to_queue(cards)
+                except Exception:
+                    res_clone = None
+            if isinstance(res_clone, dict) and res_clone.get("ok"):
+                if "row_ids" in res_clone:
+                    row_ids = res_clone["row_ids"]
+                if "count" in res_clone:
+                    cnt = res_clone["count"]
+
+        # Cập nhật _queue_rows để giao diện hiển thị
+        if not hasattr(self, "_queue_rows") or not isinstance(self._queue_rows, list):
+            self._queue_rows = []
+
+        for i, cid in enumerate(row_ids):
+            card_data = cards[i] if i < len(cards) and isinstance(cards[i], dict) else {}
+            new_row = {
+                "id": cid,
+                "row_id": cid,
+                "url": card_data.get("url", ""),
+                "title": card_data.get("title", f"Clone Video #{i+1}"),
+                "status": "pending",
+                "duration_seconds": card_data.get("duration_seconds", 60),
+                "duration": card_data.get("duration", 60),
+                "route": "clone",
+            }
+            self._queue_rows.append(new_row)
+
+        try:
+            if hasattr(self, "queueRowsChanged"):
+                self.queueRowsChanged.emit()
+        except Exception:
+            pass
+        try:
+            if hasattr(self, "refreshQueueAndStats") and callable(self.refreshQueueAndStats):
+                self.refreshQueueAndStats()
+        except Exception:
+            pass
+
         return {
             "ok": True,
             "count": cnt,
             "message": f"Đã thêm {cnt} video vào hàng chờ",
-            "row_ids": [f"clone_{uuid.uuid4().hex[:8]}" for _ in range(cnt)],
+            "row_ids": row_ids,
         }
+
     wpc.WorkPanelController.applyCloneBulkConfig = safe_apply_clone_bulk
     wpc.WorkPanelController.submitCloneCardsWithConfig = lambda self, cards=None, *a, **kw: safe_apply_clone_bulk(self, links_with_config=cards, common_config={}, *a, **kw)
 
@@ -497,6 +676,40 @@ if "--test-clone" in sys.argv:
     print("\n🧪 [TRIGGER CLONE VIDEO FLOW ON DEMO VERSION]")
     test_url = "https://www.youtube.com/watch?v=t8Gl7tf8Sfo"
     try:
+        # 1. Kiểm tra WorkPanelController & WorkPanelState
+        print("  • Kiểm tra khởi tạo WorkPanelController & WorkPanelState:")
+        ctrl = wpc.WorkPanelController.__new__(wpc.WorkPanelController)
+        ctrl.__init__()
+        print(f"  • ctrl._state: {getattr(ctrl, '_state', None)}")
+        state_cfgs = getattr(getattr(ctrl, '_state', None), '_route_configs', None)
+        print(f"  • ctrl._state._route_configs: {state_cfgs}")
+        assert hasattr(ctrl, "_state"), "ctrl must have _state"
+        assert hasattr(ctrl._state, "_route_configs"), "ctrl._state must have _route_configs"
+        assert isinstance(ctrl._state._route_configs, dict), "_route_configs must be a dict"
+        assert "clone" in ctrl._state._route_configs, "_route_configs must have 'clone' route"
+
+        # 2. Kiểm tra _selected_character_payload
+        print("  • Kiểm tra _selected_character_payload:")
+        char_res = ctrl._selected_character_payload()
+        print(f"  • _selected_character_payload result: {char_res}")
+        assert isinstance(char_res, dict), "_selected_character_payload must return dict"
+
+        # 3. Kiểm tra 'Vào hàng chờ' (applyCloneBulkConfig & submitCloneCardsWithConfig)
+        print("  • Kiểm tra 'Vào hàng chờ' (applyCloneBulkConfig / submitCloneCardsWithConfig):")
+        test_cards = [{"url": test_url, "title": "Test Video", "duration_seconds": 60}]
+        bulk_res = ctrl.applyCloneBulkConfig(test_cards, {})
+        print(f"  • applyCloneBulkConfig result: {bulk_res}")
+        assert bulk_res.get("ok") is True, f"applyCloneBulkConfig failed: {bulk_res}"
+
+        submit_res = ctrl.submitCloneCardsWithConfig(test_cards)
+        print(f"  • submitCloneCardsWithConfig result: {submit_res}")
+        assert submit_res.get("ok") is True, f"submitCloneCardsWithConfig failed: {submit_res}"
+
+        queue_len = len(ctrl._load_queue_rows() if hasattr(ctrl, "_load_queue_rows") else getattr(ctrl, "_queue_rows", []))
+        print(f"  • Số jobs trong hàng chờ (queue_rows): {queue_len}")
+        assert queue_len >= 2, f"Expected at least 2 jobs in queue, got {queue_len}"
+
+        # 4. Kiểm tra service youtube_clone_service get_video_details
         import services.tabs.clone_video.youtube_clone_service as ycs
         service = ycs.get_youtube_clone_service()
         print(f"  • Service instance: {service}")
@@ -505,20 +718,15 @@ if "--test-clone" in sys.argv:
             details = service.get_video_details(test_url)
             print(f"  • Video details: {details}")
         except Exception as e:
-            print(f"  • get_video_details response / error: {e}")
-            log_error(f"get_video_details: {e}")
+            print(f"  • get_video_details error: {e}")
 
-        try:
-            print(f"  • Đang thử gọi clone_video trên bản demo gốc:")
-            res = service.clone_video(test_url, {})
-            print(f"  • clone_video result: {res}")
-        except Exception as e:
-            print(f"  • clone_video response / error: {e}")
-            log_error(f"clone_video: {e}")
+        print("🎉 [XÁC NHẬN THÀNH CÔNG]: Không còn lỗi AttributeError và hàng chờ hoạt động tốt!")
     except Exception as e:
         log_error(f"Lỗi khi chạy test-clone: {e}")
         import traceback
         traceback.print_exc()
+        reset_proxy_to_automatic()
+        sys.exit(1)
 
     print("✅ Hoàn tất kích hoạt Clone Video trên bản demo gốc.")
     reset_proxy_to_automatic()

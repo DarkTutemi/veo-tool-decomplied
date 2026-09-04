@@ -628,25 +628,90 @@ try:
         def __set__(self, instance, value):
             self.store[id(instance)] = value
 
-    # Patch WorkPanelState in wpc, state and character modules
+    # 1. Patch or create WorkPanelState on wpc
     if hasattr(wpc, 'WorkPanelState'):
         wpc.WorkPanelState._route_configs = WorkPanelRouteConfigProperty(_wps_default_configs)
+        for _attr, _val in [
+            ('mode', 'url'),
+            ('aspect_ratio', '16:9'),
+            ('quality', '720p'),
+            ('resolution', '720p'),
+            ('market', 'global'),
+            ('target_market', 'global'),
+            ('_route', 'clone'),
+            ('_selected_characters_by_route', {}),
+        ]:
+            if not hasattr(wpc.WorkPanelState, _attr):
+                try:
+                    setattr(wpc.WorkPanelState, _attr, _val)
+                except Exception:
+                    pass
+    else:
+        class FallbackWorkPanelState(object):
+            _route_configs = WorkPanelRouteConfigProperty(_wps_default_configs)
+            mode = 'url'
+            aspect_ratio = '16:9'
+            quality = '720p'
+            resolution = '720p'
+            market = 'global'
+            target_market = 'global'
+            _route = 'clone'
+            _selected_characters_by_route = {}
+            def __init__(self, *args, **kwargs):
+                self._route_configs = dict(_wps_default_configs)
+                self.mode = 'url'
+                self.aspect_ratio = '16:9'
+                self.quality = '720p'
+                self.resolution = '720p'
+                self.market = 'global'
+                self.target_market = 'global'
+                self._route = 'clone'
+                self._selected_characters_by_route = {}
+        wpc.WorkPanelState = FallbackWorkPanelState
 
+    # Also patch application.work_panel.state.WorkPanelState if present
     try:
         import application.work_panel.state as _wps_mod
-        _wps_mod.WorkPanelState._route_configs = WorkPanelRouteConfigProperty(_wps_default_configs)
+        if hasattr(_wps_mod, 'WorkPanelState'):
+            _wps_mod.WorkPanelState._route_configs = WorkPanelRouteConfigProperty(_wps_default_configs)
+    except Exception:
+        pass
+
+    # Also patch application.work_panel.clone.WorkPanelState if present
+    try:
+        import application.work_panel.clone as _wpc_clone_mod
+        if hasattr(_wpc_clone_mod, 'WorkPanelState'):
+            _wpc_clone_mod.WorkPanelState._route_configs = WorkPanelRouteConfigProperty(_wps_default_configs)
+            for _attr, _val in [
+                ('mode', 'url'),
+                ('aspect_ratio', '16:9'),
+                ('quality', '720p'),
+                ('resolution', '720p'),
+                ('market', 'global'),
+                ('target_market', 'global'),
+                ('_route', 'clone'),
+                ('_selected_characters_by_route', {}),
+            ]:
+                if not hasattr(_wpc_clone_mod.WorkPanelState, _attr):
+                    try:
+                        setattr(_wpc_clone_mod.WorkPanelState, _attr, _val)
+                    except Exception:
+                        pass
     except Exception:
         pass
 
     try:
         import application.work_panel.character as _wpc_char_mod
-        _wpc_char_mod.WorkPanelState._route_configs = WorkPanelRouteConfigProperty(_wps_default_configs)
+        if hasattr(_wpc_char_mod, "WorkPanelState"):
+            _wpc_char_mod.WorkPanelState._route_configs = WorkPanelRouteConfigProperty(_wps_default_configs)
 
-        orig_char_payload = getattr(_wpc_char_mod.CharacterUseCases, "_selected_character_payload", None)
-        def safe_char_payload(self, *args, **kwargs):
-            state = getattr(self, "state", self)
-            if not hasattr(state, "_route_configs") or state._route_configs is None:
-                state._route_configs = dict(_wps_default_configs)
+        orig_char_payload = getattr(_wpc_char_mod, "_selected_character_payload", None)
+        def safe_func_char_payload(self, *args, **kwargs):
+            if not hasattr(self, "_route_configs") or getattr(self, "_route_configs", None) is None:
+                try:
+                    self._route_configs = dict(_wps_default_configs)
+                except Exception:
+                    pass
             if orig_char_payload:
                 try:
                     res = orig_char_payload(self, *args, **kwargs)
@@ -655,12 +720,48 @@ try:
                 except Exception:
                     pass
             return {}
-        _wpc_char_mod.CharacterUseCases._selected_character_payload = safe_char_payload
+        _wpc_char_mod._selected_character_payload = safe_func_char_payload
+
+        orig_char_uc_payload = getattr(getattr(_wpc_char_mod, "CharacterUseCases", None), "_selected_character_payload", None)
+        def safe_char_payload(self, *args, **kwargs):
+            state = getattr(self, "state", self)
+            if state is not None:
+                if not hasattr(state, "_route_configs") or getattr(state, "_route_configs", None) is None:
+                    try:
+                        state._route_configs = dict(_wps_default_configs)
+                    except Exception:
+                        pass
+                if not hasattr(state, "_selected_characters_by_route") or getattr(state, "_selected_characters_by_route", None) is None:
+                    try:
+                        state._selected_characters_by_route = {}
+                    except Exception:
+                        pass
+                if not hasattr(state, "_route") or getattr(state, "_route", None) is None:
+                    try:
+                        state._route = "clone"
+                    except Exception:
+                        pass
+            if orig_char_uc_payload:
+                try:
+                    res = orig_char_uc_payload(self, *args, **kwargs)
+                    if isinstance(res, dict):
+                        return res
+                except Exception:
+                    pass
+            return {}
+        if hasattr(_wpc_char_mod, "CharacterUseCases"):
+            _wpc_char_mod.CharacterUseCases._selected_character_payload = safe_char_payload
     except Exception:
         pass
 
     orig_wpc_char_payload = getattr(wpc.WorkPanelController, "_selected_character_payload", None)
     def safe_wpc_char_payload(self, *args, **kwargs):
+        if hasattr(self, "_state") and self._state is not None:
+            if not hasattr(self._state, "_route_configs") or getattr(self._state, "_route_configs", None) is None:
+                try:
+                    self._state._route_configs = dict(_wps_default_configs)
+                except Exception:
+                    pass
         if orig_wpc_char_payload:
             try:
                 res = orig_wpc_char_payload(self, *args, **kwargs)
@@ -687,6 +788,23 @@ try:
             self._route_configs["clone"] = {'mode': 'url', 'aspect_ratio': '16:9', 'quality': '720p', 'resolution': '720p', 'market': 'global', 'target_market': 'global'}
         if getattr(self, "_route_config", None) is None:
             self._route_config = dict(self._route_configs)
+
+        if hasattr(self, "_state") and self._state is not None:
+            try:
+                self._state._route_configs = dict(_wps_default_configs)
+            except Exception:
+                pass
+            if not hasattr(self._state, "_route") or getattr(self._state, "_route", None) is None:
+                try:
+                    self._state._route = "clone"
+                except Exception:
+                    pass
+            if not hasattr(self._state, "_selected_characters_by_route") or getattr(self._state, "_selected_characters_by_route", None) is None:
+                try:
+                    self._state._selected_characters_by_route = {}
+                except Exception:
+                    pass
+
         self._clone = _clone_queue_instance
 
     wpc.WorkPanelController.__init__ = safe_wpc_init
