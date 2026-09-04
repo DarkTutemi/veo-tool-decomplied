@@ -610,6 +610,25 @@ try:
         def __call__(self, instance=None, *args, **kwargs):
             return self.func(instance, *args, **kwargs)
 
+    wpc.WorkPanelController._route_configs = {'clone': {'mode': 'url', 'aspect_ratio': '16:9', 'quality': '720p', 'resolution': '720p', 'market': 'global', 'target_market': 'global'}}
+
+    orig_wpc_init = wpc.WorkPanelController.__init__
+    def safe_wpc_init(self, *args, **kwargs):
+        self._route_configs = {'clone': {'mode': 'url', 'aspect_ratio': '16:9', 'quality': '720p', 'resolution': '720p', 'market': 'global', 'target_market': 'global'}}
+        self._route_config = dict(self._route_configs)
+        try:
+            orig_wpc_init(self, *args, **kwargs)
+        except Exception:
+            pass
+        if getattr(self, "_route_configs", None) is None or not isinstance(self._route_configs, dict):
+            self._route_configs = {'clone': {'mode': 'url', 'aspect_ratio': '16:9', 'quality': '720p', 'resolution': '720p', 'market': 'global', 'target_market': 'global'}}
+        elif "clone" not in self._route_configs:
+            self._route_configs["clone"] = {'mode': 'url', 'aspect_ratio': '16:9', 'quality': '720p', 'resolution': '720p', 'market': 'global', 'target_market': 'global'}
+        if getattr(self, "_route_config", None) is None:
+            self._route_config = dict(self._route_configs)
+
+    wpc.WorkPanelController.__init__ = safe_wpc_init
+
     wpc.WorkPanelController.currentRouteConfig = HybridProperty(_get_safe_route_config)
     wpc.WorkPanelController._effective_route_config = _get_safe_route_config
     wpc.WorkPanelController._compute_effective_route_config = _get_safe_route_config

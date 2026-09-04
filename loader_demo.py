@@ -250,34 +250,122 @@ try:
 except Exception as e:
     log_error(f"Lỗi hook requests: {e}")
 
-# 8. [COMMENTED OUT] Toàn bộ patch cho WorkPanelController & AppController (Chạy 100% theo logic gốc)
-# try:
-#     import qml_app.controllers.work_panel_controller as wpc
-#     wpc.WorkPanelController._account_run_blocker = lambda self, *a, **kw: None
-#     wpc.WorkPanelController._credit_gate_blocker = lambda self, *a, **kw: None
-#     wpc.WorkPanelController.cloneNoLiveAccountsPauseRequired = property(lambda self: False)
-#     wpc.WorkPanelController.cloneAuthPauseRequired = property(lambda self: False)
-#     wpc.WorkPanelController.transcriptQueuePaused = property(lambda self: False)
-#     wpc.WorkPanelController.clone_queue_paused = property(lambda self: False)
-#     wpc.WorkPanelController.cloneQueuePaused = property(lambda self: False)
-#     wpc.WorkPanelController.clone_credit_blocked = property(lambda self: False)
-#     wpc.WorkPanelController.cloneCreditBlocked = property(lambda self: False)
-#     wpc.WorkPanelController.authPauseRequired = property(lambda self: False)
-#     wpc.WorkPanelController.noLiveAccountsPauseRequired = property(lambda self: False)
-#     wpc.WorkPanelController.clone_auto_fetch_busy = property(lambda self: False)
-#     wpc.WorkPanelController.cloneAutoFetchBusy = property(lambda self: False)
-#     wpc.WorkPanelController.currentRouteConfig = ...
-#     wpc.WorkPanelController._clone = ...
-#     wpc.WorkPanelController.applyCloneBulkConfig = ...
-# except Exception:
-#     pass
+# 8. Patch WorkPanelController to ensure default route_configs
+try:
+    import qml_app.controllers.work_panel_controller as wpc
 
-# try:
-#     import qml_app.controllers.app_controller as ac
-#     ac.AppController.liveAccountCount = lambda self: 1
-#     ac.AppController.live_account_count = property(lambda self: 1)
-# except Exception:
-#     pass
+    _default_clone_route_cfg = {
+        'mode': 'url',
+        'aspect_ratio': '16:9',
+        'quality': '720p',
+        'resolution': '720p',
+        'market': 'global',
+        'target_market': 'global',
+    }
+
+    # 1. Gán _route_configs trực tiếp trên class WorkPanelController
+    wpc.WorkPanelController._route_configs = {'clone': dict(_default_clone_route_cfg)}
+
+    # 2. Thêm fallback trong WorkPanelController.__init__
+    orig_wpc_init = wpc.WorkPanelController.__init__
+    def safe_wpc_init(self, *args, **kwargs):
+        self._route_configs = {'clone': dict(_default_clone_route_cfg)}
+        self._route_config = dict(self._route_configs)
+        try:
+            orig_wpc_init(self, *args, **kwargs)
+        except Exception as e:
+            pass
+        if getattr(self, "_route_configs", None) is None or not isinstance(self._route_configs, dict):
+            self._route_configs = {'clone': dict(_default_clone_route_cfg)}
+        elif "clone" not in self._route_configs:
+            self._route_configs["clone"] = dict(_default_clone_route_cfg)
+        if getattr(self, "_route_config", None) is None:
+            self._route_config = dict(self._route_configs)
+
+    wpc.WorkPanelController.__init__ = safe_wpc_init
+
+    # 3. Patch _effective_route_config để nếu self._route_configs là None, trả về dict mặc định
+    orig_wpc_effective = getattr(wpc.WorkPanelController, "_effective_route_config", None)
+    def safe_effective_route_config(self, route="clone", *args, **kwargs):
+        if getattr(self, "_route_configs", None) is None or not isinstance(self._route_configs, dict):
+            self._route_configs = {'clone': dict(_default_clone_route_cfg)}
+        if "clone" not in self._route_configs or not isinstance(self._route_configs.get("clone"), dict):
+            self._route_configs["clone"] = dict(_default_clone_route_cfg)
+
+        res = None
+        if orig_wpc_effective:
+            try:
+                res = orig_wpc_effective(self, route, *args, **kwargs)
+            except Exception:
+                res = None
+
+        if res is None or not isinstance(res, dict):
+            route_key = str(route).lower().strip() if route else "clone"
+            res = self._route_configs.get(route_key)
+            if res is None or not isinstance(res, dict):
+                res = dict(_default_clone_route_cfg)
+            res = dict(res)
+
+        if "clone" not in res:
+            res["clone"] = dict(_default_clone_route_cfg)
+        for k, v in _default_clone_route_cfg.items():
+            res.setdefault(k, v)
+        return res
+
+    wpc.WorkPanelController._effective_route_config = safe_effective_route_config
+
+    # 4. Patch _compute_effective_route_config tương tự
+    orig_wpc_compute = getattr(wpc.WorkPanelController, "_compute_effective_route_config", None)
+    def safe_compute_effective_route_config(self, route="clone", *args, **kwargs):
+        if getattr(self, "_route_configs", None) is None or not isinstance(self._route_configs, dict):
+            self._route_configs = {'clone': dict(_default_clone_route_cfg)}
+        if "clone" not in self._route_configs or not isinstance(self._route_configs.get("clone"), dict):
+            self._route_configs["clone"] = dict(_default_clone_route_cfg)
+
+        res = None
+        if orig_wpc_compute:
+            try:
+                res = orig_wpc_compute(self, route, *args, **kwargs)
+            except Exception:
+                res = None
+
+        if res is None or not isinstance(res, dict):
+            res = safe_effective_route_config(self, route, *args, **kwargs)
+        return res
+
+    wpc.WorkPanelController._compute_effective_route_config = safe_compute_effective_route_config
+
+    # An toàn cho clone timer & batch rows
+    def safe_clone_timer(self, row=None, *args, **kwargs):
+        if row is None or not isinstance(row, dict):
+            row = {"duration_seconds": 60, "duration": 60, "status": "idle"}
+        dur = row.get("duration_seconds")
+        if dur is None or dur <= 0:
+            row["duration_seconds"] = 60
+        if "duration" not in row or not row.get("duration"):
+            row["duration"] = row["duration_seconds"]
+        if "status" not in row or not row.get("status"):
+            row["status"] = "idle"
+        return row
+
+    wpc.WorkPanelController._update_clone_timer = safe_clone_timer
+    wpc.WorkPanelController._refresh_clone_status = safe_clone_timer
+
+    def safe_on_clone_batch_rows_changed(self, rows=None, *args, **kwargs):
+        if rows is None:
+            rows = []
+        elif not isinstance(rows, (list, tuple)):
+            try:
+                rows = list(rows)
+            except Exception:
+                rows = []
+        return rows
+
+    wpc.WorkPanelController._on_clone_batch_rows_changed = safe_on_clone_batch_rows_changed
+
+    print("✅ [WorkPanelController] Đã cấu hình fallback mặc định cho route_configs.")
+except Exception as e:
+    log_error(f"Lỗi patch WorkPanelController: {e}")
 
 # 9. [COMMENTED OUT] Toàn bộ patch FeatureGate & license_manager (Bản demo gốc chạy logic tự nhiên)
 # import license.license_manager as lm_mod
