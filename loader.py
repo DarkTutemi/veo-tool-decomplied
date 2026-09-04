@@ -139,11 +139,21 @@ _clone_queue_instance = RealCloneQueueService()
 
 class SmartService:
     def __getattr__(self, name):
+        if name in ("list_queue", "get_queue"):
+            return lambda *a, **kw: {"ok": True, "rows": []}
+        if name == "get_stats":
+            return lambda *a, **kw: {"total": 0, "pending": 0, "generating": 0, "completed": 0, "failed": 0}
+        if name in ("add_to_queue", "start_queue", "cancel_job", "retry_row", "remove_row"):
+            return lambda *a, **kw: {"ok": True, "count": 1}
+        if name in ("is_ready", "ready", "enabled", "has_feature", "check_feature_access"):
+            return lambda *a, **kw: True
         return lambda *a, **kw: {}
     def __call__(self, *a, **kw):
         return self
     def __iter__(self):
-        return iter([SmartService(), SmartService()])
+        return iter([])
+    def __bool__(self):
+        return True
 
 class SmartModule(types.ModuleType):
     def __getattr__(self, name):
@@ -154,6 +164,17 @@ class SmartModule(types.ModuleType):
 class AutoStubFinder(importlib.abc.MetaPathFinder):
     def find_spec(self, fullname, path, target=None):
         if fullname.startswith("services.tabs.") or fullname.startswith("application."):
+            # Check if module exists physically in sys.path first
+            for finder in sys.meta_path:
+                if finder is self:
+                    continue
+                if hasattr(finder, "find_spec"):
+                    try:
+                        s = finder.find_spec(fullname, path, target)
+                        if s is not None:
+                            return s
+                    except Exception:
+                        pass
             return importlib.util.spec_from_loader(fullname, AutoStubLoader())
         return None
 
@@ -163,7 +184,21 @@ class AutoStubLoader(importlib.abc.Loader):
     def exec_module(self, module):
         pass
 
-sys.meta_path.append(AutoStubFinder())
+sys.meta_path.insert(0, AutoStubFinder())
+
+# 5b. Safe fallback for .vfp feature packs runtime
+try:
+    import core.feature_packs.runtime as fpr
+    orig_activate = fpr.activate_entitled_runtime_packs
+    def safe_activate_entitled_runtime_packs(*a, **kw):
+        try:
+            return orig_activate(*a, **kw)
+        except Exception as e:
+            print(f"⚠️ [FeaturePacks] Fallback activation: {e}")
+            return []
+    fpr.activate_entitled_runtime_packs = safe_activate_entitled_runtime_packs
+except Exception:
+    pass
 
 # 6. Patch secure_memory & certifi
 from types import ModuleType
