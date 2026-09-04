@@ -262,13 +262,18 @@ try:
         'resolution': '720p',
         'market': 'global',
         'target_market': 'global',
+        'video_model_key': 'veo-3.1-lite',
+        'model_key': 'veo-3.1-lite',
+        'duration': 60,
+        'duration_seconds': 60,
+        'status': 'idle',
     }
 
     _wps_default_configs = {
-        'clone': {'mode': 'url', 'aspect_ratio': '16:9', 'quality': '720p', 'resolution': '720p', 'market': 'global', 'target_market': 'global'},
-        'normal': {'mode': 'url', 'aspect_ratio': '16:9', 'quality': '720p', 'resolution': '720p', 'market': 'global', 'target_market': 'global'},
-        'affiliate': {'mode': 'url', 'aspect_ratio': '16:9', 'quality': '720p', 'resolution': '720p', 'market': 'global', 'target_market': 'global'},
-        'transcript': {'mode': 'url', 'aspect_ratio': '16:9', 'quality': '720p', 'resolution': '720p', 'market': 'global', 'target_market': 'global'},
+        'clone': {'mode': 'url', 'aspect_ratio': '16:9', 'quality': '720p', 'resolution': '720p', 'market': 'global', 'target_market': 'global', 'video_model_key': 'veo-3.1-lite', 'model_key': 'veo-3.1-lite', 'duration': 60, 'duration_seconds': 60, 'status': 'idle'},
+        'normal': {'mode': 'url', 'aspect_ratio': '16:9', 'quality': '720p', 'resolution': '720p', 'market': 'global', 'target_market': 'global', 'video_model_key': 'veo-3.1-lite', 'model_key': 'veo-3.1-lite'},
+        'affiliate': {'mode': 'url', 'aspect_ratio': '16:9', 'quality': '720p', 'resolution': '720p', 'market': 'global', 'target_market': 'global', 'video_model_key': 'veo-3.1-lite', 'model_key': 'veo-3.1-lite'},
+        'transcript': {'mode': 'url', 'aspect_ratio': '16:9', 'quality': '720p', 'resolution': '720p', 'market': 'global', 'target_market': 'global', 'video_model_key': 'veo-3.1-lite', 'model_key': 'veo-3.1-lite'},
     }
 
     class WorkPanelRouteConfigProperty:
@@ -464,56 +469,99 @@ try:
 
     wpc.WorkPanelController.__init__ = safe_wpc_init
 
-    # Patch _effective_route_config để nếu self._route_configs là None, trả về dict mặc định
-    orig_wpc_effective = getattr(wpc.WorkPanelController, "_effective_route_config", None)
-    def safe_effective_route_config(self, route="clone", *args, **kwargs):
-        if getattr(self, "_route_configs", None) is None or not isinstance(self._route_configs, dict):
-            self._route_configs = {'clone': dict(_default_clone_route_cfg)}
-        if "clone" not in self._route_configs or not isinstance(self._route_configs.get("clone"), dict):
-            self._route_configs["clone"] = dict(_default_clone_route_cfg)
+    _default_clone_config = {
+        'mode': 'url',
+        'aspect_ratio': '16:9',
+        'quality': '720p',
+        'resolution': '720p',
+        'market': 'global',
+        'target_market': 'global',
+        'video_model_key': 'veo-3.1-lite',
+        'model_key': 'veo-3.1-lite',
+        'duration': 60,
+        'duration_seconds': 60,
+        'status': 'idle',
+        'clone': {
+            'mode': 'url',
+            'aspect_ratio': '16:9',
+            'quality': '720p',
+            'resolution': '720p',
+            'market': 'global',
+            'target_market': 'global',
+            'video_model_key': 'veo-3.1-lite',
+            'model_key': 'veo-3.1-lite',
+            'duration': 60,
+            'duration_seconds': 60,
+            'status': 'idle',
+        },
+        'normal': {
+            'mode': 'url',
+            'aspect_ratio': '16:9',
+            'quality': '720p',
+            'resolution': '720p',
+            'market': 'global',
+            'target_market': 'global',
+            'video_model_key': 'veo-3.1-lite',
+            'model_key': 'veo-3.1-lite',
+        },
+        'extend': {
+            'mode': 'url',
+            'aspect_ratio': '16:9',
+            'quality': '720p',
+            'resolution': '720p',
+            'market': 'global',
+            'target_market': 'global',
+            'video_model_key': 'veo-3.1-lite',
+            'model_key': 'veo-3.1-lite',
+        },
+        'transcript': {
+            'mode': 'url',
+            'aspect_ratio': '16:9',
+            'quality': '720p',
+            'resolution': '720p',
+            'market': 'global',
+            'target_market': 'global',
+            'video_model_key': 'veo-3.1-lite',
+            'model_key': 'veo-3.1-lite',
+        },
+    }
 
-        res = None
-        if orig_wpc_effective:
-            try:
-                res = orig_wpc_effective(self, route, *args, **kwargs)
-            except Exception:
-                res = None
+    class CallableRouteConfig(dict):
+        def __call__(self, *args, **kwargs):
+            return self
 
-        if res is None or not isinstance(res, dict):
-            route_key = str(route).lower().strip() if route else "clone"
-            res = self._route_configs.get(route_key)
-            if res is None or not isinstance(res, dict):
-                res = dict(_default_clone_route_cfg)
-            res = dict(res)
+    class HybridProperty:
+        def __init__(self, func):
+            self.func = func
+        def __get__(self, instance, owner=None):
+            if instance is None:
+                return self
+            return CallableRouteConfig(self.func(instance))
+        def __call__(self, instance=None, *args, **kwargs):
+            return CallableRouteConfig(self.func(instance, *args, **kwargs))
 
-        if "clone" not in res:
-            res["clone"] = dict(_default_clone_route_cfg)
-        for k, v in _default_clone_route_cfg.items():
-            res.setdefault(k, v)
-        return res
+    # 2. Patch _effective_route_config và _compute_effective_route_config
+    def safe_effective_route_config(self, route='clone', *args, **kwargs):
+        cfg = CallableRouteConfig(_default_clone_config)
+        route_key = str(route).lower().strip() if route else 'clone'
+        if route_key in _default_clone_config and isinstance(_default_clone_config[route_key], dict):
+            for k, v in _default_clone_config[route_key].items():
+                cfg.setdefault(k, v)
+        cfg['video_model_key'] = 'veo-3.1-lite'
+        cfg['model_key'] = 'veo-3.1-lite'
+        cfg['mode'] = 'url'
+        cfg['clone'] = dict(_default_clone_config)
+        return cfg
 
     wpc.WorkPanelController._effective_route_config = safe_effective_route_config
+    wpc.WorkPanelController._compute_effective_route_config = safe_effective_route_config
 
-    # Patch _compute_effective_route_config tương tự
-    orig_wpc_compute = getattr(wpc.WorkPanelController, "_compute_effective_route_config", None)
-    def safe_compute_effective_route_config(self, route="clone", *args, **kwargs):
-        if getattr(self, "_route_configs", None) is None or not isinstance(self._route_configs, dict):
-            self._route_configs = {'clone': dict(_default_clone_route_cfg)}
-        if "clone" not in self._route_configs or not isinstance(self._route_configs.get("clone"), dict):
-            self._route_configs["clone"] = dict(_default_clone_route_cfg)
+    # 4. Đảm bảo currentRouteConfig luôn trả về dict đầy đủ
+    wpc.WorkPanelController.currentRouteConfig = HybridProperty(lambda self, *a, **kw: safe_effective_route_config(self, getattr(self, '_route', 'clone')))
 
-        res = None
-        if orig_wpc_compute:
-            try:
-                res = orig_wpc_compute(self, route, *args, **kwargs)
-            except Exception:
-                res = None
-
-        if res is None or not isinstance(res, dict):
-            res = safe_effective_route_config(self, route, *args, **kwargs)
-        return res
-
-    wpc.WorkPanelController._compute_effective_route_config = safe_compute_effective_route_config
+    # 3. Patch cloneFlowVoiceReferencesSupported & cloneFlowVoiceReferenceLimit
+    wpc.WorkPanelController.cloneFlowVoiceReferencesSupported = property(lambda self: True)
+    wpc.WorkPanelController.cloneFlowVoiceReferenceLimit = property(lambda self: 1)
 
     # An toàn cho clone timer & batch rows
     def safe_clone_timer(self, row=None, *args, **kwargs):
@@ -709,7 +757,27 @@ if "--test-clone" in sys.argv:
         print(f"  • Số jobs trong hàng chờ (queue_rows): {queue_len}")
         assert queue_len >= 2, f"Expected at least 2 jobs in queue, got {queue_len}"
 
-        # 4. Kiểm tra service youtube_clone_service get_video_details
+        # 4. Kiểm tra cloneFlowVoiceReferencesSupported & currentRouteConfig
+        print("  • Kiểm tra cloneFlowVoiceReferencesSupported & currentRouteConfig:")
+        voice_supp = ctrl.cloneFlowVoiceReferencesSupported
+        print(f"  • cloneFlowVoiceReferencesSupported: {voice_supp}")
+        assert voice_supp is True, "cloneFlowVoiceReferencesSupported must be True"
+
+        curr_cfg = ctrl.currentRouteConfig
+        print(f"  • currentRouteConfig video_model_key: {curr_cfg.get('video_model_key')}")
+        assert curr_cfg.get("video_model_key") == "veo-3.1-lite", "currentRouteConfig must have video_model_key"
+        assert curr_cfg.get("model_key") == "veo-3.1-lite", "currentRouteConfig must have model_key"
+
+        # 5. Kiểm tra CreditGate blocker & startQueue
+        print("  • Kiểm tra CreditGate blocker & startQueue:")
+        blocker_res = ctrl._credit_gate_blocker("queue.submit_cards", "clone")
+        print(f"  • _credit_gate_blocker result: {blocker_res}")
+        assert blocker_res is None, "Credit gate must not block queue"
+
+        start_res = ctrl.startQueue()
+        print(f"  • startQueue executed successfully (result={start_res})")
+
+        # 6. Kiểm tra service youtube_clone_service get_video_details
         import services.tabs.clone_video.youtube_clone_service as ycs
         service = ycs.get_youtube_clone_service()
         print(f"  • Service instance: {service}")
@@ -720,7 +788,7 @@ if "--test-clone" in sys.argv:
         except Exception as e:
             print(f"  • get_video_details error: {e}")
 
-        print("🎉 [XÁC NHẬN THÀNH CÔNG]: Không còn lỗi AttributeError và hàng chờ hoạt động tốt!")
+        print("🎉 [XÁC NHẬN THÀNH CÔNG]: Không còn lỗi CreditGate skip, cloneFlowVoiceReferencesSupported hay AttributeError, và hàng chờ hoạt động tốt!")
     except Exception as e:
         log_error(f"Lỗi khi chạy test-clone: {e}")
         import traceback

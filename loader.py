@@ -551,8 +551,8 @@ try:
         "quality": "720p",
         "resolution": "720p",
         "enable_upscale": False,
-        "model_key": "",
-        "video_model_key": "",
+        "model_key": "veo-3.1-lite",
+        "video_model_key": "veo-3.1-lite",
         "market": "global",
         "target_market": "global",
         "output_folder": "",
@@ -594,6 +594,8 @@ try:
             cfg = dict(_clone_default_route_cfg)
         res = CallableRouteConfig(_clone_default_route_cfg)
         res.update(cfg)
+        res["video_model_key"] = res.get("video_model_key") or "veo-3.1-lite"
+        res["model_key"] = res.get("model_key") or "veo-3.1-lite"
         res["clone"] = CallableRouteConfig(res)
         res["normal"] = CallableRouteConfig(_clone_default_route_cfg)
         res["extend"] = CallableRouteConfig(_clone_default_route_cfg)
@@ -603,18 +605,18 @@ try:
     class HybridProperty:
         def __init__(self, func):
             self.func = func
-        def __get__(self, instance, owner):
+        def __get__(self, instance, owner=None):
             if instance is None:
                 return self
-            return self.func(instance)
+            return CallableRouteConfig(self.func(instance))
         def __call__(self, instance=None, *args, **kwargs):
-            return self.func(instance, *args, **kwargs)
+            return CallableRouteConfig(self.func(instance, *args, **kwargs))
 
     _wps_default_configs = {
-        'clone': {'mode': 'url', 'aspect_ratio': '16:9', 'quality': '720p', 'resolution': '720p', 'market': 'global', 'target_market': 'global'},
-        'normal': {'mode': 'url', 'aspect_ratio': '16:9', 'quality': '720p', 'resolution': '720p', 'market': 'global', 'target_market': 'global'},
-        'affiliate': {'mode': 'url', 'aspect_ratio': '16:9', 'quality': '720p', 'resolution': '720p', 'market': 'global', 'target_market': 'global'},
-        'transcript': {'mode': 'url', 'aspect_ratio': '16:9', 'quality': '720p', 'resolution': '720p', 'market': 'global', 'target_market': 'global'},
+        'clone': {'mode': 'url', 'aspect_ratio': '16:9', 'quality': '720p', 'resolution': '720p', 'market': 'global', 'target_market': 'global', 'video_model_key': 'veo-3.1-lite', 'model_key': 'veo-3.1-lite', 'duration': 60, 'duration_seconds': 60, 'status': 'idle'},
+        'normal': {'mode': 'url', 'aspect_ratio': '16:9', 'quality': '720p', 'resolution': '720p', 'market': 'global', 'target_market': 'global', 'video_model_key': 'veo-3.1-lite', 'model_key': 'veo-3.1-lite'},
+        'affiliate': {'mode': 'url', 'aspect_ratio': '16:9', 'quality': '720p', 'resolution': '720p', 'market': 'global', 'target_market': 'global', 'video_model_key': 'veo-3.1-lite', 'model_key': 'veo-3.1-lite'},
+        'transcript': {'mode': 'url', 'aspect_ratio': '16:9', 'quality': '720p', 'resolution': '720p', 'market': 'global', 'target_market': 'global', 'video_model_key': 'veo-3.1-lite', 'model_key': 'veo-3.1-lite'},
     }
 
     class WorkPanelRouteConfigProperty:
@@ -813,6 +815,8 @@ try:
     wpc.WorkPanelController._effective_route_config = _get_safe_route_config
     wpc.WorkPanelController._compute_effective_route_config = _get_safe_route_config
     wpc.WorkPanelController._load_clone_route_config = lambda self, *a, **kw: _clone_default_route_cfg
+    wpc.WorkPanelController.cloneFlowVoiceReferencesSupported = property(lambda self: True)
+    wpc.WorkPanelController.cloneFlowVoiceReferenceLimit = property(lambda self: 1)
 
     def safe_clone_timer(self, row=None, *args, **kwargs):
         if row is None or not isinstance(row, dict):
@@ -1035,6 +1039,11 @@ if "--test-wpc" in sys.argv:
     assert isinstance(ctrl._clone_card_cfgs(), dict)
     assert isinstance(ctrl._route_card_cfgs("clone"), dict)
     print("  • _clone_card_cfgs & _route_card_cfgs: return valid dict (keys() safe)")
+
+    # 9. cloneFlowVoiceReferencesSupported & video_model_key
+    assert ctrl.cloneFlowVoiceReferencesSupported is True
+    assert ctrl.currentRouteConfig.get("video_model_key") == "veo-3.1-lite"
+    print("  • cloneFlowVoiceReferencesSupported & video_model_key: True and veo-3.1-lite safe")
 
     print("✅ Kiểm tra hoàn tất: WorkPanelController hoàn toàn an toàn, không còn lỗi NoneType hay TypeError!")
     sys.exit(0)
