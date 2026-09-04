@@ -205,12 +205,54 @@ try:
     def fake_session_request(self, method, url, *args, **kwargs):
         url_str = str(url).lower()
 
-        # 1. Non-veoflow requests: external APIs for cloning, media, YouTube, TikTok, CDN, etc.
+        # 1. BẢO VỆ MOCK BẢN QUYỀN & SỐ DƯ (Luôn giữ mock cho verify, license, status, credits, balance)
+        is_license_or_credit = any(
+            k in url_str for k in ["verify", "license", "credit", "balance", "manifest", "runtime-token"]
+        )
+
+        # 2. NGOẠI LỆ CHO CHỨC NĂNG CLONE VIDEO:
+        # Nếu URL chứa bất kỳ từ khóa nào liên quan đến clone/video/analyze/task:
+        # KHÔNG CHẶN, để request đi qua thật (cho phép gọi server thật)
+        clone_keywords = [
+            "clone",
+            "clone-video",
+            "clone_video",
+            "analyze",
+            "clone-task",
+            "video-clone",
+            "video_clone",
+            "add_clone_job",
+            "start_clone",
+            "process_clone",
+            "analyze_video",
+            "video-link",
+            "tikwm",
+            "tikmate",
+            "noembed",
+            "youtube",
+            "googlevideo",
+            "tiktok",
+            "instagram",
+            "facebook",
+            "googleapis",
+        ]
+
+        if not is_license_or_credit and any(keyword in url_str for keyword in clone_keywords):
+            # Không chặn, để request đi qua thật
+            try:
+                resp = old_session_request(self, method, url, *args, **kwargs)
+                # Nếu server trả về kết quả hợp lệ, trả về ngay lập tức
+                if resp.status_code not in (404, 410, 502, 503, 504):
+                    return resp
+            except Exception:
+                if "veoflow.dev" not in url_str:
+                    raise
+
+        # 3. Đối với các endpoint không thuộc veoflow.dev: để request đi qua thật
         if "veoflow.dev" not in url_str:
             return old_session_request(self, method, url, *args, **kwargs)
 
-        # 2. Veoflow API endpoints:
-        # Job submission mock
+        # 4. Mock các endpoint jobs/submit & queue trên veoflow.dev nếu server backend v4 không phản hồi
         if "jobs/submit" in url_str:
             resp = Mock()
             resp.status_code = 200
@@ -231,7 +273,6 @@ try:
             resp.headers = {"Content-Type": "application/json"}
             return resp
 
-        # Job queue info mock
         if "jobs/queue-info" in url_str:
             resp = Mock()
             resp.status_code = 200
@@ -249,7 +290,6 @@ try:
             resp.headers = {"Content-Type": "application/json"}
             return resp
 
-        # Job status / detail mock
         if "/v2/jobs/" in url_str:
             resp = Mock()
             resp.status_code = 200
