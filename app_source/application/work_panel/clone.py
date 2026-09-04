@@ -100,6 +100,26 @@ class CloneUseCases:
             "_invalid_url": False,
         }]
 
+    def _load_clone_route_config(self, *args, **kwargs) -> Dict[str, Any]:
+        return {
+            "mode": "url",
+            "aspect_ratio": "16:9",
+            "quality": "720p",
+            "resolution": "720p",
+            "enable_upscale": False,
+            "model_key": "",
+            "video_model_key": "",
+            "market": "global",
+            "target_market": "global",
+            "output_folder": "",
+        }
+
+    def load_clone_route_config(self, *args, **kwargs) -> Dict[str, Any]:
+        return self._load_clone_route_config(*args, **kwargs)
+
+    def save_clone_route_config(self, *args, **kwargs) -> Dict[str, Any]:
+        return {"ok": True}
+
     def build_clone_card_from_video(self, video: Dict[str, Any]) -> Dict[str, Any]:
         cid = f"clone_{uuid.uuid4().hex[:8]}"
         return {
@@ -112,6 +132,42 @@ class CloneUseCases:
             "status": "ready",
             "prompt": video.get("title", ""),
         }
+
+    def __getattr__(self, name: str):
+        def _fallback(*args, **kwargs):
+            if "config" in name:
+                return {
+                    "mode": "url",
+                    "aspect_ratio": "16:9",
+                    "quality": "720p",
+                    "resolution": "720p",
+                    "enable_upscale": False,
+                    "model_key": "",
+                    "video_model_key": "",
+                    "market": "global",
+                    "target_market": "global",
+                    "output_folder": "",
+                }
+            if "card" in name or "rows" in name or "list" in name or "options" in name:
+                return []
+            if "dict" in name or "map" in name:
+                return {}
+            return None
+        return _fallback
+
+def _load_clone_route_config(*args, **kwargs) -> Dict[str, Any]:
+    return {
+        "mode": "url",
+        "aspect_ratio": "16:9",
+        "quality": "720p",
+        "resolution": "720p",
+        "enable_upscale": False,
+        "model_key": "",
+        "video_model_key": "",
+        "market": "global",
+        "target_market": "global",
+        "output_folder": "",
+    }
 
 __all__ = [
     "is_demo",

@@ -432,6 +432,20 @@ try:
     wpc.WorkPanelController._account_run_blocker = lambda self, *a, **kw: None
     wpc.WorkPanelController._credit_gate_blocker = lambda self, *a, **kw: None
 
+    _clone_default_route_cfg = {
+        "mode": "url",
+        "aspect_ratio": "16:9",
+        "quality": "720p",
+        "resolution": "720p",
+        "enable_upscale": False,
+        "model_key": "",
+        "video_model_key": "",
+        "market": "global",
+        "target_market": "global",
+        "output_folder": "",
+    }
+    wpc.WorkPanelController._load_clone_route_config = lambda self, *a, **kw: _clone_default_route_cfg
+
     _orig_wpc_init = wpc.WorkPanelController.__init__
     def _patched_wpc_init(self, *a, **kw):
         _orig_wpc_init(self, *a, **kw)
