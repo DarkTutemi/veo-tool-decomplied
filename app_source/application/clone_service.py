@@ -38,7 +38,14 @@ class CloneService:
     def add_to_queue(self, sources=None, *args, **kwargs) -> Dict[str, Any]:
         if sources is None:
             sources = kwargs.get("cards", [])
-        if isinstance(sources, dict):
+        if isinstance(sources, dict) and "sources" in sources:
+            bulk_config = sources.get("config", {})
+            sources = sources.get("sources", [])
+            for s in sources:
+                if isinstance(s, dict):
+                    if "config" not in s or not s["config"]:
+                        s["config"] = dict(bulk_config)
+        elif isinstance(sources, dict):
             sources = [sources]
         elif not isinstance(sources, (list, tuple)):
             sources = []
@@ -51,16 +58,50 @@ class CloneService:
                 url = s.get("url", "")
                 title = s.get("title", f"Video {idx + 1}")
                 dur = s.get("duration_seconds", 60)
+                cfg = dict(s.get("config", {}))
+                creative_mode = s.get("creative_mode") or cfg.get("creative_mode", "original")
+                creative_input = s.get("creative_input") or cfg.get("creative_input", "")
+                char_consistency = s.get("char_consistency") or cfg.get("char_consistency", False)
+                auto_merge = s.get("auto_merge") if "auto_merge" in s else cfg.get("auto_merge", True)
+                subtitles = s.get("subtitles") if "subtitles" in s else cfg.get("subtitles", True)
+                tts = s.get("tts") if "tts" in s else cfg.get("tts", True)
+                narration_policy = s.get("narration_policy") or cfg.get("narration_policy", "auto")
             else:
                 url = str(s)
                 title = url
                 dur = 60
+                cfg = {}
+                creative_mode = "original"
+                creative_input = ""
+                char_consistency = False
+                auto_merge = True
+                subtitles = True
+                tts = True
+                narration_policy = "auto"
+            cfg.update({
+                "creative_mode": creative_mode,
+                "creative_input": creative_input,
+                "char_consistency": char_consistency,
+                "auto_merge": auto_merge,
+                "subtitles": subtitles,
+                "tts": tts,
+                "narration_policy": narration_policy,
+            })
             self._rows.append({
                 "id": r_id,
+                "row_id": r_id,
                 "url": url,
                 "title": title,
                 "status": "pending",
                 "duration_seconds": dur,
+                "config": cfg,
+                "creative_mode": creative_mode,
+                "creative_input": creative_input,
+                "char_consistency": char_consistency,
+                "auto_merge": auto_merge,
+                "subtitles": subtitles,
+                "tts": tts,
+                "narration_policy": narration_policy,
             })
         return {
             "ok": True,

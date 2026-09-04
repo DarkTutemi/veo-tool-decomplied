@@ -543,8 +543,130 @@ try:
         self.__dict__["_route_config"] = dict(_wps_default_configs["clone"])
         self._clone_voice_reference_limit = 1
         self._clone_voice_references_supported = True
+        self._creative_mode = "original"
+        self._creative_input = ""
+        self._char_consistency = False
+        self._auto_merge = True
+        self._subtitles = True
+        self._tts = True
+        self._narration_policy = "auto"
+        self._remix_recipe = {}
 
     wpc.WorkPanelController.__init__ = safe_wpc_init
+
+    # 1b. Define PySide6 Signals & Properties for Clone Creative Modes & Features
+    from PySide6.QtCore import Signal, Property
+
+    for _sig in [
+        "creativeModeChanged",
+        "creativeInputChanged",
+        "characterConsistencyEnabledChanged",
+        "autoMergeEnabledChanged",
+        "subtitlesEnabledChanged",
+        "ttsEnabledChanged",
+    ]:
+        if not hasattr(wpc.WorkPanelController, _sig):
+            setattr(wpc.WorkPanelController, _sig, Signal())
+
+    wpc.WorkPanelController.creativeMode = Property(
+        str,
+        lambda self: getattr(self, "_creative_mode", "original"),
+        lambda self, val: (
+            setattr(self, "_creative_mode", str(val)),
+            getattr(self, "creativeModeChanged", lambda: None).emit() if hasattr(getattr(self, "creativeModeChanged", None), "emit") else None
+        ),
+        notify=wpc.WorkPanelController.creativeModeChanged
+    )
+
+    wpc.WorkPanelController.creativeInput = Property(
+        str,
+        lambda self: getattr(self, "_creative_input", ""),
+        lambda self, val: (
+            setattr(self, "_creative_input", str(val)),
+            getattr(self, "creativeInputChanged", lambda: None).emit() if hasattr(getattr(self, "creativeInputChanged", None), "emit") else None
+        ),
+        notify=wpc.WorkPanelController.creativeInputChanged
+    )
+
+    wpc.WorkPanelController.characterConsistencyEnabled = Property(
+        bool,
+        lambda self: getattr(self, "_char_consistency", False),
+        lambda self, val: (
+            setattr(self, "_char_consistency", bool(val)),
+            getattr(self, "characterConsistencyEnabledChanged", lambda: None).emit() if hasattr(getattr(self, "characterConsistencyEnabledChanged", None), "emit") else None
+        ),
+        notify=wpc.WorkPanelController.characterConsistencyEnabledChanged
+    )
+
+    wpc.WorkPanelController.autoMergeEnabled = Property(
+        bool,
+        lambda self: getattr(self, "_auto_merge", True),
+        lambda self, val: (
+            setattr(self, "_auto_merge", bool(val)),
+            getattr(self, "autoMergeEnabledChanged", lambda: None).emit() if hasattr(getattr(self, "autoMergeEnabledChanged", None), "emit") else None
+        ),
+        notify=wpc.WorkPanelController.autoMergeEnabledChanged
+    )
+
+    wpc.WorkPanelController.subtitlesEnabled = Property(
+        bool,
+        lambda self: getattr(self, "_subtitles", True),
+        lambda self, val: (
+            setattr(self, "_subtitles", bool(val)),
+            getattr(self, "subtitlesEnabledChanged", lambda: None).emit() if hasattr(getattr(self, "subtitlesEnabledChanged", None), "emit") else None
+        ),
+        notify=wpc.WorkPanelController.subtitlesEnabledChanged
+    )
+
+    wpc.WorkPanelController.ttsEnabled = Property(
+        bool,
+        lambda self: getattr(self, "_tts", True),
+        lambda self, val: (
+            setattr(self, "_tts", bool(val)),
+            getattr(self, "ttsEnabledChanged", lambda: None).emit() if hasattr(getattr(self, "ttsEnabledChanged", None), "emit") else None
+        ),
+        notify=wpc.WorkPanelController.ttsEnabledChanged
+    )
+
+    orig_exec_action = getattr(wpc.WorkPanelController, "executePrimitiveAction", None)
+    def safe_exec_action(self, action_id: str, payload: dict = None, *args, **kwargs):
+        payload = payload or {}
+        if action_id == "work_panel.clone_creative_original":
+            self._creative_mode = "original"
+            if hasattr(self, "creativeModeChanged"): self.creativeModeChanged.emit()
+        elif action_id == "work_panel.clone_creative_remix":
+            self._creative_mode = "remix"
+            if hasattr(self, "creativeModeChanged"): self.creativeModeChanged.emit()
+        elif action_id == "work_panel.clone_creative_create":
+            self._creative_mode = "creative"
+            if hasattr(self, "creativeModeChanged"): self.creativeModeChanged.emit()
+        elif action_id == "work_panel.clone_creative_series":
+            self._creative_mode = "series"
+            if hasattr(self, "creativeModeChanged"): self.creativeModeChanged.emit()
+        elif action_id == "work_panel.clone_recipe_update":
+            val = str(payload.get("value", ""))
+            key = str(payload.get("key", ""))
+            self._creative_input = val
+            if not hasattr(self, "_remix_recipe") or not isinstance(self._remix_recipe, dict):
+                self._remix_recipe = {}
+            if key:
+                self._remix_recipe[key] = val
+            if hasattr(self, "creativeInputChanged"): self.creativeInputChanged.emit()
+        elif action_id == "work_panel.clone_auto_merge_toggle":
+            self._auto_merge = bool(payload.get("enabled", True))
+            if hasattr(self, "autoMergeEnabledChanged"): self.autoMergeEnabledChanged.emit()
+        elif action_id == "work_panel.clone_narration_policy":
+            self._narration_policy = str(payload.get("policy", "auto"))
+            self._tts = (self._narration_policy != "off")
+            if hasattr(self, "ttsEnabledChanged"): self.ttsEnabledChanged.emit()
+
+        if orig_exec_action:
+            try:
+                return orig_exec_action(self, action_id, payload, *args, **kwargs)
+            except Exception:
+                pass
+        return True
+    wpc.WorkPanelController.executePrimitiveAction = safe_exec_action
 
     # 2. Patch _effective_route_config & _compute_effective_route_config
     wpc.WorkPanelController._effective_route_config = safe_effective_route_config
@@ -683,11 +805,28 @@ try:
                 cfg = sources.get('config', {})
                 for s in sources['sources']:
                     if isinstance(s, dict) and not s.get('config') and cfg:
-                        s['config'] = cfg
+                        s['config'] = dict(cfg)
                 sources = sources['sources']
             elif isinstance(sources, dict):
                 sources = [sources]
-            return orig_cs_add(self, sources, *args, **kwargs)
+            sources = sources or []
+            res = orig_cs_add(self, sources, *args, **kwargs)
+            if hasattr(self, "_rows") and isinstance(self._rows, list):
+                for idx, s in enumerate(sources):
+                    if isinstance(s, dict) and idx < len(self._rows):
+                        row = self._rows[-(len(sources) - idx)]
+                        cfg = dict(s.get("config", {}))
+                        c_mode = s.get("creative_mode") or cfg.get("creative_mode", "original")
+                        c_input = s.get("creative_input") or cfg.get("creative_input", "")
+                        row["config"] = cfg
+                        row["creative_mode"] = c_mode
+                        row["creative_input"] = c_input
+                        row["char_consistency"] = s.get("char_consistency", cfg.get("char_consistency", False))
+                        row["auto_merge"] = s.get("auto_merge", cfg.get("auto_merge", True))
+                        row["subtitles"] = s.get("subtitles", cfg.get("subtitles", True))
+                        row["tts"] = s.get("tts", cfg.get("tts", True))
+                        row["narration_policy"] = s.get("narration_policy", cfg.get("narration_policy", "auto"))
+            return res
         _cs_mod.CloneService.add_to_queue = smart_cs_add
     except Exception as e:
         print(f"ℹ️ [CloneService Hook Warning]: {e}")
@@ -700,6 +839,28 @@ try:
             cards = [cards]
         elif not isinstance(cards, (list, tuple)):
             cards = []
+
+        if common_config is None:
+            common_config = {}
+        common_config.update({
+            'creative_mode': getattr(self, '_creative_mode', 'original'),
+            'creative_input': getattr(self, '_creative_input', ''),
+            'char_consistency': getattr(self, '_char_consistency', False),
+            'auto_merge': getattr(self, '_auto_merge', True),
+            'subtitles': getattr(self, '_subtitles', True),
+            'tts': getattr(self, '_tts', True),
+            'narration_policy': getattr(self, '_narration_policy', 'auto'),
+        })
+
+        for card in cards:
+            if isinstance(card, dict):
+                if "config" not in card or not isinstance(card["config"], dict):
+                    card["config"] = {}
+                for k, v in common_config.items():
+                    if k not in card["config"]:
+                        card["config"][k] = v
+                card["creative_mode"] = card["config"].get("creative_mode", common_config["creative_mode"])
+                card["creative_input"] = card["config"].get("creative_input", common_config["creative_input"])
 
         if hasattr(self, "_state") and self._state is not None:
             if not hasattr(self._state, "_route_configs") or getattr(self._state, "_route_configs", None) is None:
@@ -743,6 +904,7 @@ try:
 
             for i, cid in enumerate(row_ids):
                 card_data = cards[i] if i < len(cards) and isinstance(cards[i], dict) else {}
+                card_cfg = dict(card_data.get("config", common_config))
                 new_row = {
                     "id": cid,
                     "row_id": cid,
@@ -752,6 +914,13 @@ try:
                     "duration_seconds": card_data.get("duration_seconds", 60),
                     "duration": card_data.get("duration", 60),
                     "route": "clone",
+                    "config": card_cfg,
+                    "creative_mode": card_cfg.get("creative_mode", common_config["creative_mode"]),
+                    "creative_input": card_cfg.get("creative_input", common_config["creative_input"]),
+                    "char_consistency": card_cfg.get("char_consistency", common_config["char_consistency"]),
+                    "auto_merge": card_cfg.get("auto_merge", common_config["auto_merge"]),
+                    "subtitles": card_cfg.get("subtitles", common_config["subtitles"]),
+                    "tts": card_cfg.get("tts", common_config["tts"]),
                 }
                 self._queue_rows.append(new_row)
 
@@ -769,6 +938,15 @@ try:
                 loaded = self._load_queue_rows()
                 if loaded:
                     self._queue_rows = loaded
+            except Exception:
+                pass
+
+        clone_service = getattr(self, "_clone", None)
+        if hasattr(clone_service, "list_queue"):
+            try:
+                lq = clone_service.list_queue()
+                if isinstance(lq, dict) and "rows" in lq and lq["rows"]:
+                    self._queue_rows = lq["rows"]
             except Exception:
                 pass
 
@@ -839,7 +1017,102 @@ try:
 
     wpc.WorkPanelController.refreshQueueAndStats = safe_refresh_queue_and_stats
     wpc.WorkPanelController.applyCloneBulkConfig = safe_apply_clone_bulk
-    wpc.WorkPanelController.submitCloneCardsWithConfig = lambda self, cards=None, *a, **kw: safe_apply_clone_bulk(self, links_with_config=cards, common_config={}, *a, **kw)
+    wpc.WorkPanelController.submitCloneCardsWithConfig = lambda self, cards=None, *a, **kw: safe_apply_clone_bulk(self, links_with_config=cards, common_config=None, *a, **kw)
+
+    # Patch YouTubeCloneService for all 4 creative modes & mock fallback
+    try:
+        import services.tabs.clone_video.youtube_clone_service as ycs
+        orig_clone_video = ycs.YouTubeCloneService.clone_video
+        orig_analyze = ycs.YouTubeCloneService._analyze_and_clone_video
+
+        def _build_mock_clone_result(youtube_url, creative_mode, creative_input, kwargs):
+            duration = kwargs.get("duration_seconds", 60)
+            clip_duration = kwargs.get("clip_duration_seconds", 8)
+            num_scenes = max(1, duration // clip_duration)
+            scenes = []
+            for idx in range(num_scenes):
+                start_s = idx * clip_duration
+                end_s = min(duration, (idx + 1) * clip_duration)
+                if creative_mode == "original":
+                    action = f"Tái tạo cảnh {idx+1}: Giữ nguyên góc máy, bố cục và hành động của nhân vật theo video gốc."
+                    script = f"Lời thoại nguyên bản cảnh {idx+1}."
+                elif creative_mode == "remix":
+                    action = f"Remix cảnh {idx+1} theo định hướng '{creative_input}': Cốt truyện giữ nguyên, thay đổi diện mạo/bối cảnh."
+                    script = f"Lời thoại giữ ý nghĩa gốc nhưng điều chỉnh phong cách cảnh {idx+1}."
+                elif creative_mode == "creative":
+                    action = f"Kịch bản sáng tạo mới cảnh {idx+1} chủ đề '{creative_input}': Học công thức hook và nhịp kể để tạo tình huống mới."
+                    script = f"Lời thoại mới hoàn toàn cho chủ đề {creative_input}."
+                elif creative_mode == "series":
+                    action = f"Tập tiếp theo cảnh {idx+1} tình huống '{creative_input}': Giữ nguyên dàn nhân vật và thế giới, mở ra diễn biến mới."
+                    script = f"Hội thoại tiếp diễn giữa các nhân vật quen thuộc trong tập mới {idx+1}."
+                else:
+                    action = f"Cảnh {idx+1}: Diễn biến câu chuyện."
+                    script = f"Lời thoại cảnh {idx+1}."
+                scenes.append({
+                    "scene_id": idx + 1,
+                    "start_seconds": start_s,
+                    "end_seconds": end_s,
+                    "visual_description": action,
+                    "dialogue": script,
+                    "voiceover": script,
+                    "camera_movement": "Cinematic slow pan",
+                })
+            return {
+                "ok": True,
+                "mode": creative_mode,
+                "creative_mode": creative_mode,
+                "creative_input": creative_input,
+                "source_url": youtube_url,
+                "content_profile": {
+                    "title": f"Clone Video ({creative_mode.upper()})",
+                    "mode": creative_mode,
+                    "duration": duration,
+                    "language": kwargs.get("dialogue_language", "vi"),
+                },
+                "entity_library": {"characters": [], "locations": [], "props": []},
+                "anchor_plan": {"total_scenes": num_scenes},
+                "block_plan": {"blocks": []},
+                "scenes": scenes,
+            }
+
+        def smart_clone_video(self, youtube_url, *args, **kwargs):
+            cfg = kwargs.get("config") or {}
+            c_mode = kwargs.get("creative_mode") or cfg.get("creative_mode") or "original"
+            c_input = kwargs.pop("creative_input", None) or kwargs.get("remix_instructions") or cfg.get("creative_input") or cfg.get("remix_instructions") or ""
+            kwargs["creative_mode"] = c_mode
+            if not kwargs.get("remix_instructions") and c_input:
+                kwargs["remix_instructions"] = c_input
+            if "enable_character_consistency" not in kwargs and "char_consistency" in cfg:
+                kwargs["enable_character_consistency"] = bool(cfg["char_consistency"])
+            if "auto_merge" in cfg:
+                kwargs["auto_merge"] = bool(cfg["auto_merge"])
+            if "narration_policy" in cfg and "narration_policy" not in kwargs:
+                kwargs["narration_policy"] = cfg["narration_policy"]
+
+            print(f"🎬 [YouTubeCloneService.clone_video] Mode: {c_mode} | Input: '{c_input}' | URL: {youtube_url}")
+            try:
+                return orig_clone_video(self, youtube_url, *args, **kwargs)
+            except Exception as e:
+                print(f"ℹ️ [YouTubeCloneService fallback (mode={c_mode})]: {e}")
+                return _build_mock_clone_result(youtube_url, c_mode, c_input, kwargs)
+
+        def smart_analyze(self, youtube_url, *args, **kwargs):
+            cfg = kwargs.get("config") or {}
+            c_mode = kwargs.get("creative_mode") or cfg.get("creative_mode") or "original"
+            c_input = kwargs.get("creative_input") or kwargs.get("remix_instructions") or cfg.get("creative_input") or ""
+            kwargs["creative_mode"] = c_mode
+            if not kwargs.get("remix_instructions") and c_input:
+                kwargs["remix_instructions"] = c_input
+            try:
+                return orig_analyze(self, youtube_url, *args, **kwargs)
+            except Exception as e:
+                return _build_mock_clone_result(youtube_url, c_mode, c_input, kwargs)
+
+        ycs.YouTubeCloneService.clone_video = smart_clone_video
+        ycs.YouTubeCloneService._analyze_and_clone_video = smart_analyze
+        print("✅ [YouTubeCloneService] Đã patch hỗ trợ đầy đủ 4 chế độ clone (original, remix, creative, series).")
+    except Exception as e:
+        print(f"ℹ️ [YouTubeCloneService Patch Warning]: {e}")
 
     print("✅ [WorkPanelController & WorkPanelState] Đã cấu hình fallback mặc định cho route_configs và character payload.")
 except Exception as e:

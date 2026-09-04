@@ -95,6 +95,42 @@ Rectangle {
     // (WorkPanelWorkspace → ScrollView) grow + scroll được, không khoá layout.
     implicitHeight: Math.max(VfTheme.dp(820), cloneMainColumn.implicitHeight + VfTheme.dp(16))
 
+    onCreativeModeChanged: {
+        if (typeof workPanelController !== "undefined" && workPanelController && workPanelController.creativeMode !== root.creativeMode) {
+            workPanelController.creativeMode = root.creativeMode
+        }
+    }
+    onAutoMergeEnabledChanged: {
+        if (typeof workPanelController !== "undefined" && workPanelController && workPanelController.autoMergeEnabled !== root.autoMergeEnabled) {
+            workPanelController.autoMergeEnabled = root.autoMergeEnabled
+        }
+    }
+    onNarrationPolicyChanged: {
+        if (typeof workPanelController !== "undefined" && workPanelController) {
+            workPanelController.ttsEnabled = (root.narrationPolicy !== "off")
+        }
+    }
+    onSelectedCharactersChanged: {
+        if (typeof workPanelController !== "undefined" && workPanelController) {
+            workPanelController.characterConsistencyEnabled = (root.selectedCharacters && root.selectedCharacters.length > 0)
+        }
+    }
+
+
+    Connections {
+        target: typeof workPanelController !== "undefined" ? workPanelController : null
+        function onCreativeModeChanged() {
+            if (workPanelController && workPanelController.creativeMode && workPanelController.creativeMode !== root.creativeMode) {
+                root.creativeMode = workPanelController.creativeMode
+            }
+        }
+        function onCreativeInputChanged() {
+            if (workPanelController && workPanelController.creativeInput !== undefined) {
+                root.setRecipeValue(root.primaryRecipeKey, workPanelController.creativeInput)
+            }
+        }
+    }
+
     function metaText(key, fallback) {
         if (root.meta && root.meta[key] !== undefined && root.meta[key] !== null && String(root.meta[key]).length > 0)
             return String(root.meta[key])
@@ -360,6 +396,9 @@ Rectangle {
         if (current === nextValue)
             return
         root.setRecipeValue(key, nextValue)
+        if (typeof workPanelController !== "undefined" && workPanelController) {
+            workPanelController.creativeInput = nextValue
+        }
         primaryRecipeDebounce.pendingKey = key
         primaryRecipeDebounce.pendingValue = nextValue
         primaryRecipeDebounce.restart()
@@ -1161,6 +1200,14 @@ Rectangle {
     Component.onCompleted: {
         syncFromRouteConfig()
         root.syncDialogueLanguageFromMarket(true)
+        if (typeof workPanelController !== "undefined" && workPanelController) {
+            workPanelController.creativeMode = root.creativeMode
+            workPanelController.creativeInput = String((root.remixRecipe || ({}))[root.primaryRecipeKey] || "")
+            workPanelController.characterConsistencyEnabled = (root.selectedCharacters && root.selectedCharacters.length > 0)
+            workPanelController.autoMergeEnabled = root.autoMergeEnabled
+            workPanelController.subtitlesEnabled = true
+            workPanelController.ttsEnabled = (root.narrationPolicy !== "off")
+        }
     }
 
     Connections {
