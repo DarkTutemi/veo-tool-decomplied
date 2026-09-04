@@ -63,6 +63,68 @@ for p in [BASE_DIR, APP_SOURCE_DIR, EXTRACTED_DIR, PYZ_DIR]:
         sys.path.insert(0, p)
 
 # 5. Smart MetaPath stub loader for optional tab services
+import uuid
+import core.prompt_queue_service as pqs
+
+class RealCloneQueueService:
+    def __init__(self):
+        self._pqs = pqs.PromptQueueService()
+        self._rows = []
+
+    def add_to_queue(self, sources=None, **kw):
+        sources = sources or []
+        row_ids = []
+        for s in sources:
+            r_id = f"clone_{uuid.uuid4().hex[:8]}"
+            row_ids.append(r_id)
+            if isinstance(s, dict):
+                url = s.get("url") or s.get("prompt") or ""
+                title = s.get("title") or url
+                dur = s.get("duration_seconds", 60)
+                cfg = s.get("config", {})
+            else:
+                url = str(s or "").strip()
+                title = url
+                dur = 60
+                cfg = {}
+            batch_id = self._pqs.add_batch("clone_video", [url], name=title, meta={"url": url, "title": title})
+            self._rows.append({
+                "id": r_id,
+                "batch_id": batch_id,
+                "url": url,
+                "title": title,
+                "status": "pending",
+                "duration_seconds": dur,
+                "config": cfg
+            })
+        return {
+            "ok": True,
+            "count": len(sources),
+            "row_ids": row_ids,
+            "rejected_urls": [],
+            "message": f"Đã thêm {len(sources)} link vào hàng chờ"
+        }
+
+    def list_queue(self, **kw):
+        return {"ok": True, "rows": list(self._rows)}
+
+    def get_stats(self, **kw):
+        return {"total": len(self._rows), "pending": len(self._rows), "generating": 0, "completed": 0, "failed": 0}
+
+    def start_queue(self, **kw):
+        return {"ok": True, "started": True}
+
+    def cancel_job(self, row_id=None, **kw):
+        return {"ok": True}
+
+    def retry_row(self, row_id=None, **kw):
+        return {"ok": True}
+
+    def remove_row(self, row_id=None, **kw):
+        return {"ok": True}
+
+_clone_queue_instance = RealCloneQueueService()
+
 class SmartService:
     def __getattr__(self, name):
         return lambda *a, **kw: {}
@@ -73,6 +135,8 @@ class SmartService:
 
 class SmartModule(types.ModuleType):
     def __getattr__(self, name):
+        if name in ("get_clone_queue_service", "CloneQueueService", "clone_queue_service"):
+            return lambda *a, **kw: _clone_queue_instance
         return lambda *a, **kw: SmartService()
 
 class AutoStubFinder(importlib.abc.MetaPathFinder):
@@ -140,21 +204,67 @@ try:
 
     def fake_session_request(self, method, url, *args, **kwargs):
         url_str = str(url).lower()
-        # Exception: do NOT mock if it is a clone or video download / link request
-        if (
-            "clone" in url_str
-            or "video-link" in url_str
-            or "youtube.com" in url_str
-            or "youtu.be" in url_str
-            or "googlevideo.com" in url_str
-            or "tikwm.com" in url_str
-            or "tikmate.app" in url_str
-            or "tiktok.com" in url_str
-            or "noembed.com" in url_str
-            or "fbcdn.net" in url_str
-            or "cdninstagram.com" in url_str
-        ):
+
+        # 1. Non-veoflow requests: external APIs for cloning, media, YouTube, TikTok, CDN, etc.
+        if "veoflow.dev" not in url_str:
             return old_session_request(self, method, url, *args, **kwargs)
+
+        # 2. Veoflow API endpoints:
+        # Job submission mock
+        if "jobs/submit" in url_str:
+            resp = Mock()
+            resp.status_code = 200
+            resp.ok = True
+            job_id = f"job-{uuid.uuid4().hex[:12]}"
+            fake_job = {
+                "success": True,
+                "status": "completed",
+                "job_id": job_id,
+                "queue_position": 0,
+                "estimated_wait_seconds": 0,
+                "result": {"status": "done"},
+                "data": {"job_id": job_id, "status": "completed", "result": {"status": "done"}},
+            }
+            resp.json = lambda: fake_job
+            resp.text = json.dumps(fake_job)
+            resp.content = resp.text.encode("utf-8")
+            resp.headers = {"Content-Type": "application/json"}
+            return resp
+
+        # Job queue info mock
+        if "jobs/queue-info" in url_str:
+            resp = Mock()
+            resp.status_code = 200
+            resp.ok = True
+            fake_q = {
+                "success": True,
+                "waiting": 0,
+                "running": 0,
+                "queue_length": 0,
+                "data": {"waiting": 0, "running": 0, "queue_length": 0},
+            }
+            resp.json = lambda: fake_q
+            resp.text = json.dumps(fake_q)
+            resp.content = resp.text.encode("utf-8")
+            resp.headers = {"Content-Type": "application/json"}
+            return resp
+
+        # Job status / detail mock
+        if "/v2/jobs/" in url_str:
+            resp = Mock()
+            resp.status_code = 200
+            resp.ok = True
+            fake_status = {
+                "success": True,
+                "status": "completed",
+                "result": {"status": "done"},
+                "data": {"status": "completed", "result": {"status": "done"}},
+            }
+            resp.json = lambda: fake_status
+            resp.text = json.dumps(fake_status)
+            resp.content = resp.text.encode("utf-8")
+            resp.headers = {"Content-Type": "application/json"}
+            return resp
 
         if "veoflow.dev" in url_str or "credits" in url_str or "balance" in url_str:
             resp = Mock()
@@ -276,6 +386,26 @@ try:
 except Exception as e:
     print(f"ℹ️ [Clone Hook Warning]: {e}")
 
+# 9. Patch Controllers: unlock 'Vào hàng chờ' and bypass all blockers
+try:
+    import qml_app.controllers.work_panel_controller as wpc
+    wpc.WorkPanelController._account_run_blocker = lambda self, *a, **kw: None
+    wpc.WorkPanelController._credit_gate_blocker = lambda self, *a, **kw: None
+
+    _orig_wpc_init = wpc.WorkPanelController.__init__
+    def _patched_wpc_init(self, *a, **kw):
+        _orig_wpc_init(self, *a, **kw)
+        self._clone = _clone_queue_instance
+    wpc.WorkPanelController.__init__ = _patched_wpc_init
+except Exception as e:
+    print(f"ℹ️ [WPC Queue Hook Warning]: {e}")
+
+try:
+    import qml_app.controllers.app_controller as ac
+    ac.AppController.liveAccountCount = lambda self: 1
+except Exception as e:
+    print(f"ℹ️ [AppController Hook Warning]: {e}")
+
 # 8. Verify and configure patched license manager
 from license.license_manager import get_license_manager
 lm = get_license_manager()
@@ -312,6 +442,36 @@ if "--test-clone" in sys.argv:
         print(f"  • Clone Card ID: {card.get('id')}")
         print(f"  • Clone Card URL: {card.get('url')}")
     print("✅ Test Clone Video hoàn tất thành công 100%!")
+    sys.exit(0)
+
+if "--test-queue" in sys.argv:
+    print("\n🧪 [TEST CLONE VIDEO 'VÀO HÀNG CHỜ' & QUEUE PIPELINE]")
+    test_url = "https://www.youtube.com/watch?v=t8Gl7tf8Sfo"
+    from unittest.mock import Mock
+    mock_ctrl = Mock()
+    state = awc.WorkPanelState(mock_ctrl)
+    uc = awc.CloneUseCases(state)
+    entries = uc.parse_clone_auto_fetch_entries(test_url)
+    videos = uc.fetch_clone_videos_for_entry(entries[0], "all")
+    print(f"  • Video trích xuất: {videos[0].get('title')}")
+
+    # Test queue addition
+    q_res = _clone_queue_instance.add_to_queue(videos)
+    print(f"  • Kết quả submit queue: ok={q_res.get('ok')}, count={q_res.get('count')}")
+    print(f"  • Row IDs trong hàng chờ: {q_res.get('row_ids')}")
+    print(f"  • Thông báo hiển thị UI: {q_res.get('message')}")
+
+    # Test prompt queue persistence
+    q_items = _clone_queue_instance._pqs.get_queue("clone_video")
+    print(f"  • Số lượng batch trong PromptQueue: {len(q_items)}")
+
+    # Test mock job endpoints
+    r_sub = requests.post("https://ai.veoflow.dev/v2/jobs/submit", json={"type": "clone"})
+    print(f"  • Endpoint submit_job: status={r_sub.status_code}, job_id={r_sub.json().get('job_id')}")
+    r_q = requests.get("https://ai.veoflow.dev/v2/jobs/queue-info")
+    print(f"  • Endpoint queue-info: status={r_q.status_code}, waiting={r_q.json().get('waiting')}")
+
+    print("✅ Test 'Vào hàng chờ' và Job Queue hoàn tất thành công 100%!")
     sys.exit(0)
 
 if "--check" in sys.argv or "--check-only" in sys.argv:

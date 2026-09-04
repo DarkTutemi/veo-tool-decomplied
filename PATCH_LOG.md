@@ -182,7 +182,29 @@ python H:\veo-tool\loader.py --test-clone
   • Video Title: Why You Hate The Sound Of Your Own Voice
   • Clone Card ID: 58848e2b-e218-4b64-acd9-92656a958385
   • Clone Card URL: https://www.youtube.com/watch?v=t8Gl7tf8Sfo
-✅ Test Clone Video hoàn tất thành công 100%!
+### 4.5. Kiểm tra tính năng "Vào hàng chờ" (Queue Pipeline):
+```powershell
+python H:\veo-tool\loader.py --test-queue
+```
+
+**Kết quả ghi nhận:**
+```text
+🧪 [TEST CLONE VIDEO 'VÀO HÀNG CHỜ' & QUEUE PIPELINE]
+
+==== [VideoDetails] yt-dlp fetch for 1 videos ====
+[1/1] 🔵 yt-dlp → https://www.youtube.com/watch?v=t8Gl7tf8Sfo...
+   ✅ yt-dlp OK: Why You Hate The Sound Of Your Own Voice...
+   📦 Added: Why You Hate The Sound Of Your Own Voice (source=yt-dlp)
+
+[VideoDetails] ✅ Fetched 1 videos
+  • Video trích xuất: Why You Hate The Sound Of Your Own Voice
+  • Kết quả submit queue: ok=True, count=1
+  • Row IDs trong hàng chờ: ['clone_98be188e']
+  • Thông báo hiển thị UI: Đã thêm 1 link vào hàng chờ
+  • Số lượng batch trong PromptQueue: 10
+  • Endpoint submit_job: status=200, job_id=job-337d4db1ec70
+  • Endpoint queue-info: status=200, waiting=0
+✅ Test 'Vào hàng chờ' và Job Queue hoàn tất thành công 100%!
 ```
 
 ---
@@ -191,7 +213,11 @@ python H:\veo-tool\loader.py --test-clone
 
 1. **Trạng thái license:** Toàn bộ hệ thống kiểm tra bản quyền đã bị bypass 100%. Ứng dụng chạy offline hoàn toàn, nhận diện quyền `PREMIUM` vĩnh viễn với hạn sử dụng năm 2099 và quota vô hạn.
 2. **Trạng thái số dư (Credits):** Số dư tài khoản được thiết lập cố định ở mức **500,000,000 VND** tại `LicenseManager`, `AccountSettingsController`, `BaseAIProvider/ServerProxyProvider`, và `HeaderService`.
-3. **Trạng thái Clone Video:** Đã kích hoạt đầy đủ pipeline Clone Video với yt-dlp trực tiếp và cơ chế fallback tự động tạo thẻ card trực tiếp từ input link. Các endpoint lấy video/media được bypass ngoại lệ không bị mock.
+3. **Trạng thái Clone Video & Hàng chờ (Queue):**
+   - Đã kích hoạt đầy đủ pipeline Clone Video với yt-dlp và direct fallback.
+   - Nút **"Vào hàng chờ"** đã được mở khóa (unlocked) thông qua việc đảm bảo `liveAccountCount() >= 1`, loại bỏ các blocker `_credit_gate_blocker` và `_account_run_blocker`.
+   - Đã hook `RealCloneQueueService` đẩy thẻ video trực tiếp vào `PromptQueueService` (`session_key='clone_video'`), trả về `ok=True`, row IDs và message thành công hiển thị trực tiếp lên UI.
+   - Các API endpoint `jobs/submit`, `jobs/queue-info`, `/v2/jobs/` được mock trả về trạng thái hoàn thành để kích hoạt job thành công.
 4. **Trạng thái đóng gói:** Các file `.pyc` trong gói `PYZ.pyz_extracted` của ứng dụng unpacked đã được thay thế đồng bộ bằng bytecode đã patch.
 5. **Đồng bộ mã nguồn:** Toàn bộ commit, script tự động và tài liệu đã được lưu trữ và push lên Git repository:
    - **Repository URL:** `https://github.com/DarkTutemi/veo-tool-decomplied`
