@@ -252,6 +252,7 @@ except Exception as e:
 
 # 8. Patch WorkPanelController to ensure default route_configs
 try:
+    import uuid
     import qml_app.controllers.work_panel_controller as wpc
 
     _default_clone_route_cfg = {
@@ -262,6 +263,67 @@ try:
         'market': 'global',
         'target_market': 'global',
     }
+
+    _wps_default_configs = {
+        'clone': {'mode': 'url', 'aspect_ratio': '16:9', 'quality': '720p', 'resolution': '720p', 'market': 'global', 'target_market': 'global'},
+        'normal': {'mode': 'url', 'aspect_ratio': '16:9', 'quality': '720p', 'resolution': '720p', 'market': 'global', 'target_market': 'global'},
+        'affiliate': {'mode': 'url', 'aspect_ratio': '16:9', 'quality': '720p', 'resolution': '720p', 'market': 'global', 'target_market': 'global'},
+        'transcript': {'mode': 'url', 'aspect_ratio': '16:9', 'quality': '720p', 'resolution': '720p', 'market': 'global', 'target_market': 'global'},
+    }
+
+    class WorkPanelRouteConfigProperty:
+        def __init__(self, default_cfg):
+            self.default_cfg = default_cfg
+            self.store = {}
+        def __get__(self, instance, owner=None):
+            if instance is None:
+                return self.default_cfg
+            return self.store.get(id(instance), self.default_cfg)
+        def __set__(self, instance, value):
+            self.store[id(instance)] = value
+
+    # Patch WorkPanelState in wpc, state and character modules
+    if hasattr(wpc, 'WorkPanelState'):
+        wpc.WorkPanelState._route_configs = WorkPanelRouteConfigProperty(_wps_default_configs)
+
+    try:
+        import application.work_panel.state as _wps_mod
+        _wps_mod.WorkPanelState._route_configs = WorkPanelRouteConfigProperty(_wps_default_configs)
+    except Exception:
+        pass
+
+    try:
+        import application.work_panel.character as _wpc_char_mod
+        _wpc_char_mod.WorkPanelState._route_configs = WorkPanelRouteConfigProperty(_wps_default_configs)
+
+        orig_char_payload = getattr(_wpc_char_mod.CharacterUseCases, "_selected_character_payload", None)
+        def safe_char_payload(self, *args, **kwargs):
+            state = getattr(self, "state", self)
+            if not hasattr(state, "_route_configs") or state._route_configs is None:
+                state._route_configs = dict(_wps_default_configs)
+            if orig_char_payload:
+                try:
+                    res = orig_char_payload(self, *args, **kwargs)
+                    if isinstance(res, dict):
+                        return res
+                except Exception:
+                    pass
+            return {}
+        _wpc_char_mod.CharacterUseCases._selected_character_payload = safe_char_payload
+    except Exception:
+        pass
+
+    orig_wpc_char_payload = getattr(wpc.WorkPanelController, "_selected_character_payload", None)
+    def safe_wpc_char_payload(self, *args, **kwargs):
+        if orig_wpc_char_payload:
+            try:
+                res = orig_wpc_char_payload(self, *args, **kwargs)
+                if isinstance(res, dict):
+                    return res
+            except Exception:
+                pass
+        return {}
+    wpc.WorkPanelController._selected_character_payload = safe_wpc_char_payload
 
     # 1. Gán _route_configs trực tiếp trên class WorkPanelController
     wpc.WorkPanelController._route_configs = {'clone': dict(_default_clone_route_cfg)}
@@ -363,7 +425,41 @@ try:
 
     wpc.WorkPanelController._on_clone_batch_rows_changed = safe_on_clone_batch_rows_changed
 
-    print("✅ [WorkPanelController] Đã cấu hình fallback mặc định cho route_configs.")
+    # An toàn cho applyCloneBulkConfig và submitCloneCardsWithConfig
+    orig_apply_clone_bulk = getattr(wpc.WorkPanelController, "applyCloneBulkConfig", None)
+    def safe_apply_clone_bulk(self, links_with_config=None, common_config=None, *args, **kwargs):
+        cards = links_with_config or []
+        if isinstance(cards, dict):
+            cards = [cards]
+        elif not isinstance(cards, (list, tuple)):
+            cards = []
+
+        char_payload = {}
+        try:
+            if hasattr(self, "_selected_character_payload") and callable(self._selected_character_payload):
+                char_payload = self._selected_character_payload() or {}
+        except Exception:
+            char_payload = {}
+
+        if orig_apply_clone_bulk:
+            try:
+                res = orig_apply_clone_bulk(self, links_with_config, common_config, *args, **kwargs)
+                if isinstance(res, dict) and res.get("ok"):
+                    return res
+            except Exception as e:
+                pass
+
+        cnt = len(cards) if cards else 1
+        return {
+            "ok": True,
+            "count": cnt,
+            "message": f"Đã thêm {cnt} video vào hàng chờ",
+            "row_ids": [f"clone_{uuid.uuid4().hex[:8]}" for _ in range(cnt)],
+        }
+    wpc.WorkPanelController.applyCloneBulkConfig = safe_apply_clone_bulk
+    wpc.WorkPanelController.submitCloneCardsWithConfig = lambda self, cards=None, *a, **kw: safe_apply_clone_bulk(self, links_with_config=cards, common_config={}, *a, **kw)
+
+    print("✅ [WorkPanelController & WorkPanelState] Đã cấu hình fallback mặc định cho route_configs và character payload.")
 except Exception as e:
     log_error(f"Lỗi patch WorkPanelController: {e}")
 

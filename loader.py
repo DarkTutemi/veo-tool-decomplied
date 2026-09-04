@@ -610,6 +610,67 @@ try:
         def __call__(self, instance=None, *args, **kwargs):
             return self.func(instance, *args, **kwargs)
 
+    _wps_default_configs = {
+        'clone': {'mode': 'url', 'aspect_ratio': '16:9', 'quality': '720p', 'resolution': '720p', 'market': 'global', 'target_market': 'global'},
+        'normal': {'mode': 'url', 'aspect_ratio': '16:9', 'quality': '720p', 'resolution': '720p', 'market': 'global', 'target_market': 'global'},
+        'affiliate': {'mode': 'url', 'aspect_ratio': '16:9', 'quality': '720p', 'resolution': '720p', 'market': 'global', 'target_market': 'global'},
+        'transcript': {'mode': 'url', 'aspect_ratio': '16:9', 'quality': '720p', 'resolution': '720p', 'market': 'global', 'target_market': 'global'},
+    }
+
+    class WorkPanelRouteConfigProperty:
+        def __init__(self, default_cfg):
+            self.default_cfg = default_cfg
+            self.store = {}
+        def __get__(self, instance, owner=None):
+            if instance is None:
+                return self.default_cfg
+            return self.store.get(id(instance), self.default_cfg)
+        def __set__(self, instance, value):
+            self.store[id(instance)] = value
+
+    # Patch WorkPanelState in wpc, state and character modules
+    if hasattr(wpc, 'WorkPanelState'):
+        wpc.WorkPanelState._route_configs = WorkPanelRouteConfigProperty(_wps_default_configs)
+
+    try:
+        import application.work_panel.state as _wps_mod
+        _wps_mod.WorkPanelState._route_configs = WorkPanelRouteConfigProperty(_wps_default_configs)
+    except Exception:
+        pass
+
+    try:
+        import application.work_panel.character as _wpc_char_mod
+        _wpc_char_mod.WorkPanelState._route_configs = WorkPanelRouteConfigProperty(_wps_default_configs)
+
+        orig_char_payload = getattr(_wpc_char_mod.CharacterUseCases, "_selected_character_payload", None)
+        def safe_char_payload(self, *args, **kwargs):
+            state = getattr(self, "state", self)
+            if not hasattr(state, "_route_configs") or state._route_configs is None:
+                state._route_configs = dict(_wps_default_configs)
+            if orig_char_payload:
+                try:
+                    res = orig_char_payload(self, *args, **kwargs)
+                    if isinstance(res, dict):
+                        return res
+                except Exception:
+                    pass
+            return {}
+        _wpc_char_mod.CharacterUseCases._selected_character_payload = safe_char_payload
+    except Exception:
+        pass
+
+    orig_wpc_char_payload = getattr(wpc.WorkPanelController, "_selected_character_payload", None)
+    def safe_wpc_char_payload(self, *args, **kwargs):
+        if orig_wpc_char_payload:
+            try:
+                res = orig_wpc_char_payload(self, *args, **kwargs)
+                if isinstance(res, dict):
+                    return res
+            except Exception:
+                pass
+        return {}
+    wpc.WorkPanelController._selected_character_payload = safe_wpc_char_payload
+
     wpc.WorkPanelController._route_configs = {'clone': {'mode': 'url', 'aspect_ratio': '16:9', 'quality': '720p', 'resolution': '720p', 'market': 'global', 'target_market': 'global'}}
 
     orig_wpc_init = wpc.WorkPanelController.__init__
@@ -626,6 +687,7 @@ try:
             self._route_configs["clone"] = {'mode': 'url', 'aspect_ratio': '16:9', 'quality': '720p', 'resolution': '720p', 'market': 'global', 'target_market': 'global'}
         if getattr(self, "_route_config", None) is None:
             self._route_config = dict(self._route_configs)
+        self._clone = _clone_queue_instance
 
     wpc.WorkPanelController.__init__ = safe_wpc_init
 
@@ -688,6 +750,14 @@ try:
         elif not isinstance(cards, (list, tuple)):
             cards = []
 
+        # Kiểm tra an toàn _selected_character_payload: nếu lỗi thì bỏ qua hoặc trả về rỗng
+        char_payload = {}
+        try:
+            if hasattr(self, "_selected_character_payload") and callable(self._selected_character_payload):
+                char_payload = self._selected_character_payload() or {}
+        except Exception:
+            char_payload = {}
+
         clone_service = getattr(self, "_clone", None)
         if clone_service is None or not hasattr(clone_service, "add_to_queue"):
             clone_service = _clone_queue_instance
@@ -719,12 +789,6 @@ try:
     wpc.WorkPanelController._clone_card_cfgs = lambda self, *a, **kw: {}
     wpc.WorkPanelController._route_card_cfgs = lambda self, route="clone", *a, **kw: {}
     wpc.WorkPanelController._clone_remix_guard = lambda self, *a, **kw: None
-
-    _orig_wpc_init = wpc.WorkPanelController.__init__
-    def _patched_wpc_init(self, *a, **kw):
-        _orig_wpc_init(self, *a, **kw)
-        self._clone = _clone_queue_instance
-    wpc.WorkPanelController.__init__ = _patched_wpc_init
 except Exception as e:
     print(f"ℹ️ [WPC Queue Hook Warning]: {e}")
 
