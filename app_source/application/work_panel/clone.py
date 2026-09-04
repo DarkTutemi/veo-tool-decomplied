@@ -120,17 +120,41 @@ class CloneUseCases:
     def save_clone_route_config(self, *args, **kwargs) -> Dict[str, Any]:
         return {"ok": True}
 
+    def _update_clone_timer(self, row: Optional[Dict[str, Any]] = None, *args, **kwargs) -> Dict[str, Any]:
+        if row is None or not isinstance(row, dict):
+            row = {}
+        dur = row.get("duration_seconds")
+        if dur is None or dur <= 0:
+            row["duration_seconds"] = 60
+        if "duration" not in row or not row.get("duration"):
+            row["duration"] = row["duration_seconds"]
+        return row
+
+    def _refresh_clone_status(self, row: Optional[Dict[str, Any]] = None, *args, **kwargs) -> Dict[str, Any]:
+        if row is None or not isinstance(row, dict):
+            row = {}
+        dur = row.get("duration_seconds")
+        if dur is None or dur <= 0:
+            row["duration_seconds"] = 60
+        if "duration" not in row or not row.get("duration"):
+            row["duration"] = row["duration_seconds"]
+        return row
+
     def build_clone_card_from_video(self, video: Dict[str, Any]) -> Dict[str, Any]:
         cid = f"clone_{uuid.uuid4().hex[:8]}"
+        dur = 60
+        if isinstance(video, dict):
+            dur = video.get("duration_seconds") or video.get("duration") or 60
         return {
             "id": cid,
             "row_id": cid,
-            "video_id": video.get("video_id", ""),
-            "title": video.get("title", ""),
-            "url": video.get("url", ""),
-            "duration": video.get("duration_seconds", 60),
+            "video_id": video.get("video_id", "") if isinstance(video, dict) else "",
+            "title": video.get("title", "") if isinstance(video, dict) else "",
+            "url": video.get("url", "") if isinstance(video, dict) else "",
+            "duration": dur,
+            "duration_seconds": dur,
             "status": "ready",
-            "prompt": video.get("title", ""),
+            "prompt": video.get("title", "") if isinstance(video, dict) else "",
         }
 
     def __getattr__(self, name: str):

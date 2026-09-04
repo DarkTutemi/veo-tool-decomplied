@@ -1234,12 +1234,30 @@ Properties:
         pass
 
     def _account_run_blocker(self, action: 'str', route: 'str' = '') -> 'dict[str, Any] | None':
-        # [PyArmor BCC constants]: 'run_blocker', 'feature_blocker', 'feature_for_route', 'alert_payload', 'str', '_route', 'strip', 'lower', '.', 'route', 'getattr', '_status_controller', 'hasattr', 'publishRuntimeAlert', True
-        pass
+        return None
 
     def _credit_gate_blocker(self, full_action: 'str', route: 'str' = '') -> 'dict[str, Any] | None':
-        # [PyArmor BCC constants]: 'ModelConfig', 'resolve_active_mode', 'get_account_manager', 'str', '_route', 'strip', 'lower', 'dict', '_effective_route_config', '_credit_gate_model_selection', 'print', '[CreditGate] skip: no ', ' model_key in route config', 'get', 'account_tier'
-        pass
+        return None
+
+    def _update_clone_timer(self, row: 'dict[str, Any] | None' = None, *args, **kwargs) -> 'dict[str, Any]':
+        if row is None or not isinstance(row, dict):
+            row = {}
+        dur = row.get('duration_seconds')
+        if dur is None or dur <= 0:
+            row['duration_seconds'] = 60
+        if 'duration' not in row or not row.get('duration'):
+            row['duration'] = row['duration_seconds']
+        return row
+
+    def _refresh_clone_status(self, row: 'dict[str, Any] | None' = None, *args, **kwargs) -> 'dict[str, Any]':
+        if row is None or not isinstance(row, dict):
+            row = {}
+        dur = row.get('duration_seconds')
+        if dur is None or dur <= 0:
+            row['duration_seconds'] = 60
+        if 'duration' not in row or not row.get('duration'):
+            row['duration'] = row['duration_seconds']
+        return row
 
     def _submit_cards(self, cards: 'list[dict[str, Any]]') -> 'dict[str, Any]':
         # [PyArmor BCC constants]: 'time', 'perf_counter', '_timed_step', 'preflight', 'copy_cards', '_route', 'extend', 'str', 'get', 'prompt', 'text', '', 'strip', 'ok', 'route'

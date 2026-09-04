@@ -431,6 +431,9 @@ try:
     import qml_app.controllers.work_panel_controller as wpc
     wpc.WorkPanelController._account_run_blocker = lambda self, *a, **kw: None
     wpc.WorkPanelController._credit_gate_blocker = lambda self, *a, **kw: None
+    wpc.WorkPanelController.cloneNoLiveAccountsPauseRequired = property(lambda self: False)
+    wpc.WorkPanelController.cloneAuthPauseRequired = property(lambda self: False)
+    wpc.WorkPanelController.transcriptQueuePaused = property(lambda self: False)
 
     _clone_default_route_cfg = {
         "mode": "url",
@@ -446,6 +449,19 @@ try:
     }
     wpc.WorkPanelController._load_clone_route_config = lambda self, *a, **kw: _clone_default_route_cfg
 
+    def _safe_clone_timer_helper(self, row=None, *a, **kw):
+        if row is None or not isinstance(row, dict):
+            row = {}
+        dur = row.get('duration_seconds')
+        if dur is None or dur <= 0:
+            row['duration_seconds'] = 60
+        if 'duration' not in row or not row.get('duration'):
+            row['duration'] = row['duration_seconds']
+        return row
+
+    wpc.WorkPanelController._update_clone_timer = _safe_clone_timer_helper
+    wpc.WorkPanelController._refresh_clone_status = _safe_clone_timer_helper
+
     _orig_wpc_init = wpc.WorkPanelController.__init__
     def _patched_wpc_init(self, *a, **kw):
         _orig_wpc_init(self, *a, **kw)
@@ -457,6 +473,7 @@ except Exception as e:
 try:
     import qml_app.controllers.app_controller as ac
     ac.AppController.liveAccountCount = lambda self: 1
+    ac.AppController.live_account_count = property(lambda self: 1)
 except Exception as e:
     print(f"ℹ️ [AppController Hook Warning]: {e}")
 

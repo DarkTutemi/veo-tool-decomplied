@@ -10,11 +10,21 @@ import sys, os, typing
 from typing import Any, Dict, List, Optional, Tuple, Union, Callable
 
 # --- Module Constants & Globals ---
-annotations = _Feature((3, 7, 0, 'beta', 1), None, 16777216)
 _APP_SHELL_KEY = 'app_shell'
 _LAST_ROUTE_KEY = 'last_route'
 _VALID_ROUTES = {'automation', 'clone', 'extend', 'affiliate', 'transcript', 'timemachine', 'home', 'voice', 'master', 'normal', 'batch', 'history', 'settings', 'research'}
-_ROUTE_FEATURE = {'master': 'master_panel', 'clone': 'clone_panel', 'transcript': 'transcript_panel', 'research': 'deep_research', 'normal': 'normal_panel', 'extend': 'extend_panel', 'timemachine': 'time_machine', 'ba... [truncated]
+_ROUTE_FEATURE = {
+    'master': 'master_panel',
+    'clone': 'clone_panel',
+    'transcript': 'transcript_panel',
+    'research': 'deep_research',
+    'normal': 'normal_panel',
+    'extend': 'extend_panel',
+    'timemachine': 'time_machine',
+    'batch': 'batch_image',
+    'affiliate': 'affiliate_panel',
+    'automation': 'automation'
+}
 
 # --- Class: AppController ---
 class AppController(QObject):
@@ -135,7 +145,7 @@ Properties:
         pass
 
     def liveAccountCount(self) -> 'int':
-        pass
+        return 1
 
     def darkMode(*args, **kwargs):
         pass
